@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import {
-  ArrowLeft, Zap, Trophy, Flame, Video, MessageSquare,
-  BookOpen, CheckCircle2, Lock, Save, KeyRound, User,
+  Terminal, LogOut, Zap, Trophy, Flame, Video, MessageSquare,
+  BookOpen, CheckCircle2, Lock, Save, KeyRound, UserCircle,
   Loader2, CheckCircle, AlertCircle, Palette, ChevronRight, HelpCircle,
-  Gauge
+  Gauge, Menu
 } from "lucide-react"
 import { ByteMascot } from "@/components/byte/ByteMascot"
 import { OnboardingTutorial } from "@/components/byte/OnboardingTutorial"
@@ -34,12 +31,12 @@ const TOPICS = [
 ]
 
 const AVATAR_COLORS = [
-  { id: "violet", bg: "bg-violet-600",  ring: "ring-violet-400" },
-  { id: "blue",   bg: "bg-blue-600",    ring: "ring-blue-400"   },
-  { id: "cyan",   bg: "bg-cyan-600",    ring: "ring-cyan-400"   },
-  { id: "green",  bg: "bg-emerald-600", ring: "ring-emerald-400"},
-  { id: "orange", bg: "bg-orange-500",  ring: "ring-orange-400" },
-  { id: "pink",   bg: "bg-pink-600",    ring: "ring-pink-400"   },
+  { id: "violet", bg: "bg-violet-600",  ring: "ring-violet-400"  },
+  { id: "blue",   bg: "bg-blue-600",    ring: "ring-blue-400"    },
+  { id: "cyan",   bg: "bg-cyan-600",    ring: "ring-cyan-400"    },
+  { id: "green",  bg: "bg-emerald-600", ring: "ring-emerald-400" },
+  { id: "orange", bg: "bg-orange-500",  ring: "ring-orange-400"  },
+  { id: "pink",   bg: "bg-pink-600",    ring: "ring-pink-400"    },
 ]
 
 const ACHIEVEMENTS = [
@@ -57,10 +54,11 @@ const ACHIEVEMENTS = [
 
 export default function StudentProfile() {
   const router = useRouter()
-  const { user, token, isLoading, refreshProgress } = useAuth()
+  const { user, token, isLoading, refreshProgress, logout } = useAuth()
 
-  const [showTutorial, setShowTutorial] = useState(false)
-  const [avatarColor,  setAvatarColor]  = useState("violet")
+  const [showTutorial,    setShowTutorial]    = useState(false)
+  const [sidebarOpen,     setSidebarOpen]     = useState(false)
+  const [avatarColor,     setAvatarColor]     = useState("violet")
   const [showColorPicker, setShowColorPicker] = useState(false)
 
   const [name,       setName]       = useState("")
@@ -151,127 +149,200 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {showTutorial && (
         <OnboardingTutorial userId={user.id} onClose={() => setShowTutorial(false)} />
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <Link href="/dashboard/student">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="w-4 h-4" />Volver
-            </Button>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      <aside className={`
+        fixed md:static z-50 md:z-auto inset-y-0 left-0
+        w-60 flex-shrink-0 flex flex-col
+        bg-[oklch(0.10_0.025_240)] border-r border-border/50
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}>
+        {/* Logo */}
+        <div className="h-14 flex items-center gap-2.5 px-5 border-b border-border/40 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Terminal className="w-4 h-4 text-primary" />
+            </div>
+            <span className="font-bold tracking-tight text-sm">CodePath<span className="text-primary">AI</span></span>
           </Link>
-          <span className="text-sm text-muted-foreground">/</span>
-          <span className="text-sm font-medium">Mi Perfil</span>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
+          <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase px-3 mb-3">Aprender</p>
+          <Link href="/dashboard/student" onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
+            <BookOpen className="w-4 h-4 flex-shrink-0" />Mi Aprendizaje
+          </Link>
+          <Link href="/dashboard/student/achievements" onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
+            <Trophy className="w-4 h-4 flex-shrink-0" />Logros
+          </Link>
+          <Link href="/dashboard/student/chat" onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
+            <MessageSquare className="w-4 h-4 flex-shrink-0" />Chat con Byte
+          </Link>
+          <Link href="/dashboard/student/profile"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary/15 text-primary border border-primary/20">
+            <UserCircle className="w-4 h-4 flex-shrink-0" />Mi Perfil
+          </Link>
+        </nav>
 
-        {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-primary/20 via-primary/5 to-background border border-border/50">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
-          <div className="relative p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        {/* User footer */}
+        <div className="p-4 border-t border-border/40 space-y-3 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-lg ${colorObj.bg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate leading-tight">{user.name}</p>
+              <p className="text-[11px] text-muted-foreground leading-tight">Nivel {progress.level}</p>
+            </div>
+            <Button variant="ghost" size="icon" className="w-7 h-7 flex-shrink-0 text-muted-foreground" onClick={() => { logout(); router.push("/") }}>
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+          <div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
+              <span className="font-mono">{xpInLevel} XP</span>
+              <span>/ 500 próx. nivel</span>
+            </div>
+            <div className="h-1.5 bg-secondary/80 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+                style={{ width: `${xpPct}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </aside>
 
-            {/* Avatar */}
+      {/* ── Main area ───────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* Top bar */}
+        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-border/40 bg-background/60 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-sm font-semibold">Mi Perfil</h1>
+              <p className="text-[11px] text-muted-foreground hidden sm:block">Gestiona tu información y seguimiento de progreso</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Ver tutorial</span>
+          </button>
+        </header>
+
+        {/* Scrollable content */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-5">
+
+          {/* ── Hero ─────────────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-border/40 bg-[oklch(0.10_0.025_240)] p-5 md:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+            {/* Avatar with color picker */}
             <div className="relative flex-shrink-0">
-              <div className={`w-24 h-24 rounded-2xl ${colorObj.bg} flex items-center justify-center text-white text-3xl font-bold shadow-lg`}>
+              <div className={`w-20 h-20 rounded-2xl ${colorObj.bg} flex items-center justify-center text-white text-2xl font-bold shadow-lg`}>
                 {initials}
               </div>
               <button
                 onClick={() => setShowColorPicker(v => !v)}
-                className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors shadow-sm"
               >
-                <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                <Palette className="w-3 h-3 text-muted-foreground" />
               </button>
               {showColorPicker && (
-                <div className="absolute top-full mt-3 left-0 bg-card border border-border rounded-xl p-3 shadow-xl z-10 flex gap-2">
+                <div className="absolute top-full left-0 mt-3 z-10 bg-card border border-border rounded-xl p-3 shadow-xl flex gap-2">
                   {AVATAR_COLORS.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => { setAvatarColor(c.id); setShowColorPicker(false) }}
-                      className={`w-7 h-7 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-2 ring-offset-card` : ""} transition-all hover:scale-110`}
+                    <button key={c.id} onClick={() => { setAvatarColor(c.id); setShowColorPicker(false) }}
+                      className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-1 ring-offset-card` : ""} hover:scale-110 transition-all`}
                     />
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="text-center sm:text-left flex-1">
-              <h1 className="text-2xl font-bold mb-1">{user.name}</h1>
+            {/* Info */}
+            <div className="text-center sm:text-left flex-1 min-w-0">
+              <h2 className="text-xl font-bold mb-0.5">{user.name}</h2>
               <p className="text-muted-foreground text-sm mb-3">{user.email}</p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
-                <Badge className="bg-primary/20 text-primary border-0">Nivel {progress.level}</Badge>
-                <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">{progress.totalXP.toLocaleString()} XP</Badge>
-                <Badge variant="outline" className="border-orange-500/30 text-orange-400">🔥 {progress.streak} días</Badge>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/15 text-primary text-xs font-semibold">
+                  <Zap className="w-3 h-3" />Nivel {progress.level}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-yellow-500/10 text-yellow-400 text-xs font-semibold font-mono">
+                  {progress.totalXP.toLocaleString()} XP
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-semibold">
+                  <Flame className="w-3 h-3" />{progress.streak} días
+                </span>
               </div>
-              <div className="max-w-xs mb-4">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Nivel {progress.level}</span>
-                  <span>{xpInLevel}/500 XP → Nivel {progress.level + 1}</span>
+              <div className="max-w-xs mx-auto sm:mx-0">
+                <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Nv. {progress.level}</span>
+                  <span>{xpInLevel}/500 → Nv. {progress.level + 1}</span>
                 </div>
-                <Progress value={xpPct} className="h-2" />
+                <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${xpPct}%` }} />
+                </div>
               </div>
-
-              {/* Tutorial button — always visible */}
-              <button
-                onClick={() => setShowTutorial(true)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-                Ver tutorial de la plataforma
-              </button>
             </div>
 
-            {/* Byte decoration */}
+            {/* Mascot */}
             <div className="hidden lg:block flex-shrink-0">
-              <ByteMascot expression="happy" size={110} />
+              <ByteMascot expression="happy" size={90} />
             </div>
           </div>
-        </div>
 
-        {/* ── Stats ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {[
-            { icon: Zap,           value: progress.totalXP,         label: "XP Total",       color: "text-primary",    bg: "bg-primary/10"    },
-            { icon: Video,         value: progress.videosWatched,   label: "Videos vistos",  color: "text-blue-400",   bg: "bg-blue-500/10"   },
-            { icon: Flame,         value: progress.streak,          label: "Racha (días)",   color: "text-orange-400", bg: "bg-orange-500/10" },
-            { icon: MessageSquare, value: progress.chatbotSessions, label: "Sesiones chat",  color: "text-purple-400", bg: "bg-purple-500/10" },
-          ].map((s, i) => (
-            <Card key={i} className="bg-card/50 border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center flex-shrink-0`}>
-                  <s.icon className={`w-4 h-4 ${s.color}`} />
-                </div>
+          {/* ── Stats tiles ──────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: Zap,           value: progress.totalXP.toLocaleString(), label: "XP TOTAL",     bg: "bg-primary/10",    border: "border-l-primary",    text: "text-primary"    },
+              { icon: Video,         value: progress.videosWatched,            label: "VIDEOS",        bg: "bg-blue-500/10",   border: "border-l-blue-500",   text: "text-blue-400"   },
+              { icon: Flame,         value: progress.streak,                   label: "RACHA (DÍAS)",  bg: "bg-orange-500/10", border: "border-l-orange-500", text: "text-orange-400" },
+              { icon: MessageSquare, value: progress.chatbotSessions,          label: "SESIONES CHAT", bg: "bg-purple-500/10", border: "border-l-purple-500", text: "text-purple-400" },
+            ].map((s, i) => (
+              <div key={i} className={`${s.bg} border border-border/40 border-l-2 ${s.border} rounded-2xl p-4 flex items-center gap-3`}>
+                <s.icon className={`w-4 h-4 ${s.text} flex-shrink-0`} />
                 <div>
-                  <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold font-mono leading-tight ${s.text}`}>{s.value}</p>
+                  <p className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase mt-0.5">{s.label}</p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* ── 2-col: Logros + Progreso del curso ───────────────────────── */}
+          <div className="grid md:grid-cols-2 gap-4">
 
-          {/* ── Logros preview ────────────────────────────────────────── */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
+            {/* Logros */}
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-yellow-400" />Logros
-                </CardTitle>
-                <Link href="/dashboard/student/achievements">
-                  <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
-                    Ver todos <ChevronRight className="w-3 h-3" />
-                  </Button>
+                </h3>
+                <Link href="/dashboard/student/achievements" className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
+                  Ver todos <ChevronRight className="w-3 h-3" />
                 </Link>
               </div>
-            </CardHeader>
-            <CardContent>
               {(() => {
                 const unlocked = ACHIEVEMENTS.filter(a => a.check(
                   progress.videosWatched, progress.streak, progress.totalXP,
@@ -298,68 +369,58 @@ export default function StudentProfile() {
                         )
                       })}
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-[10px] text-muted-foreground text-center font-mono">
                       {unlocked.length} / 40 logros desbloqueados
                     </p>
                   </>
                 )
               })()}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* ── Progreso del curso ────────────────────────────────────── */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-primary" />Progreso del curso
-                </CardTitle>
-                <span className="text-sm font-mono text-primary">{completedCount}/8</span>
+            {/* Progreso del curso */}
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" />Curso
+                </h3>
+                <span className="text-xs font-mono text-primary">{completedCount}/8</span>
               </div>
-              <Progress value={(completedCount / 8) * 100} className="h-2 mt-2" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+              <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden mb-3">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${(completedCount / 8) * 100}%` }} />
+              </div>
+              <div className="space-y-1.5">
                 {TOPICS.map((t, i) => {
                   const done    = progress.completedTopics.includes(t.id)
                   const current = progress.currentTopic === t.id
                   const locked  = !done && i > 0 && !progress.completedTopics.includes(TOPICS[i - 1].id)
                   return (
-                    <div key={t.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${
+                    <div key={t.id} className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg ${
                       done ? "bg-primary/10" : current ? "bg-accent/10" : "bg-secondary/20"
                     }`}>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
                         done ? "bg-primary/30 text-primary" : current ? "bg-accent/30 text-accent" : "bg-secondary text-muted-foreground"
                       }`}>
-                        {done    ? <CheckCircle2 className="w-3.5 h-3.5" />
-                        : locked ? <Lock className="w-3 h-3" />
-                        : <span className="text-xs font-bold">{i + 1}</span>}
+                        {done ? <CheckCircle2 className="w-3 h-3" /> : locked ? <Lock className="w-3 h-3" /> : i + 1}
                       </div>
-                      <span className={`text-sm flex-1 ${done ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                        {t.name}
-                      </span>
-                      {done    && <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-0">✓</Badge>}
-                      {current && !done && <Badge variant="secondary" className="text-xs bg-accent/20 text-accent border-0">Activo</Badge>}
+                      <span className={`text-xs flex-1 ${done ? "font-medium" : "text-muted-foreground"}`}>{t.name}</span>
+                      {done && <span className="text-[10px] text-primary font-mono">✓</span>}
+                      {current && !done && <span className="text-[10px] text-accent font-semibold tracking-widest uppercase">Activo</span>}
                     </div>
                   )
                 })}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
 
-        {/* ── Nivel de habilidad por tema (Elo adaptativo) ──────────────── */}
-        {skills.length > 0 && (
-          <Card className="bg-card/50 border-border/50 mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Gauge className="w-4 h-4 text-primary" />Tu nivel de habilidad
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Se ajusta automáticamente según cómo respondes las preguntas dentro de los videos.
+          {/* ── Habilidad por tema (Elo) ─────────────────────────────────── */}
+          {skills.length > 0 && (
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
+              <h3 className="text-sm font-semibold flex items-center gap-2 mb-1">
+                <Gauge className="w-4 h-4 text-primary" />Habilidad por tema
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Se ajusta automáticamente con tus respuestas en los videos.
               </p>
-            </CardHeader>
-            <CardContent>
               <div className="grid sm:grid-cols-2 gap-2">
                 {skills.map(s => {
                   const topic = TOPICS.find(t => t.id === s.topicId)
@@ -367,90 +428,95 @@ export default function StudentProfile() {
                   return (
                     <div key={s.topicId} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-secondary/30">
                       <span className="text-sm">{topic?.name ?? s.topicId}</span>
-                      <Badge variant="outline" className={`text-xs ${className}`}>{label}</Badge>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-md bg-secondary/60 border border-border/40 ${className}`}>
+                        {label}
+                      </span>
                     </div>
                   )
                 })}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        <div className="grid md:grid-cols-2 gap-6">
+          {/* ── 2-col: Editar info + Cambiar contraseña ──────────────────── */}
+          <div className="grid md:grid-cols-2 gap-4 pb-6">
 
-          {/* ── Información personal ───────────────────────────────── */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" />Información personal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Nombre</label>
-                <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-border" placeholder="Tu nombre" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <Input value={user.email} disabled className="bg-secondary/30 border-border opacity-60" />
-                <p className="text-xs text-muted-foreground">El email no se puede modificar</p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Color del avatar</label>
-                <div className="flex gap-2">
-                  {AVATAR_COLORS.map(c => (
-                    <button key={c.id} onClick={() => setAvatarColor(c.id)}
-                      className={`w-7 h-7 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-2 ring-offset-card` : ""} transition-all hover:scale-110`}
-                    />
-                  ))}
+            {/* Información personal */}
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
+              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
+                <UserCircle className="w-4 h-4 text-primary" />Información personal
+              </h3>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Nombre</label>
+                  <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-border h-9 text-sm" placeholder="Tu nombre" />
                 </div>
-              </div>
-              {infoMsg && (
-                <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${infoMsg.ok ? "bg-green-500/10 border border-green-500/20 text-green-400" : "bg-destructive/10 border border-destructive/20 text-destructive"}`}>
-                  {infoMsg.ok ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                  {infoMsg.text}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Email</label>
+                  <Input value={user.email} disabled className="bg-secondary/30 border-border opacity-60 h-9 text-sm" />
+                  <p className="text-[10px] text-muted-foreground">El email no se puede modificar</p>
                 </div>
-              )}
-              <Button onClick={handleSaveInfo} disabled={savingInfo} className="w-full bg-primary hover:bg-primary/90 gap-2">
-                {savingInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Guardar cambios
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Color del avatar</label>
+                  <div className="flex gap-2">
+                    {AVATAR_COLORS.map(c => (
+                      <button key={c.id} onClick={() => setAvatarColor(c.id)}
+                        className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-2 ring-offset-card` : ""} hover:scale-110 transition-all`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {infoMsg && (
+                  <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                    infoMsg.ok
+                      ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                      : "bg-destructive/10 border border-destructive/20 text-destructive"
+                  }`}>
+                    {infoMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                    {infoMsg.text}
+                  </div>
+                )}
+                <Button onClick={handleSaveInfo} disabled={savingInfo} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
+                  {savingInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar cambios
+                </Button>
+              </div>
+            </div>
 
-          {/* ── Cambiar contraseña ─────────────────────────────────── */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+            {/* Cambiar contraseña */}
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
+              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
                 <KeyRound className="w-4 h-4 text-primary" />Cambiar contraseña
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { label: "Contraseña actual", val: curPw,     set: setCurPw,     ph: "••••••••"                  },
-                { label: "Nueva contraseña",  val: newPw,     set: setNewPw,     ph: "Mínimo 6 caracteres"       },
-                { label: "Confirmar nueva",   val: confirmPw, set: setConfirmPw, ph: "Repite la nueva contraseña"},
-              ].map(f => (
-                <div key={f.label} className="space-y-1.5">
-                  <label className="text-sm font-medium">{f.label}</label>
-                  <Input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className="bg-secondary/50 border-border" />
-                </div>
-              ))}
-              {pwMsg && (
-                <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${pwMsg.ok ? "bg-green-500/10 border border-green-500/20 text-green-400" : "bg-destructive/10 border border-destructive/20 text-destructive"}`}>
-                  {pwMsg.ok ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                  {pwMsg.text}
-                </div>
-              )}
-              <Button onClick={handleChangePw} disabled={savingPw} className="w-full bg-primary hover:bg-primary/90 gap-2">
-                {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                Cambiar contraseña
-              </Button>
-            </CardContent>
-          </Card>
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { label: "Contraseña actual", val: curPw,     set: setCurPw,     ph: "••••••••"            },
+                  { label: "Nueva contraseña",  val: newPw,     set: setNewPw,     ph: "Mínimo 6 caracteres" },
+                  { label: "Confirmar nueva",   val: confirmPw, set: setConfirmPw, ph: "Repite la nueva"     },
+                ].map(f => (
+                  <div key={f.label} className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">{f.label}</label>
+                    <Input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className="bg-secondary/50 border-border h-9 text-sm" />
+                  </div>
+                ))}
+                {pwMsg && (
+                  <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                    pwMsg.ok
+                      ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                      : "bg-destructive/10 border border-destructive/20 text-destructive"
+                  }`}>
+                    {pwMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                    {pwMsg.text}
+                  </div>
+                )}
+                <Button onClick={handleChangePw} disabled={savingPw} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
+                  {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}Cambiar contraseña
+                </Button>
+              </div>
+            </div>
 
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -14,7 +14,7 @@ import {
   Terminal, LogOut, Play, Bot, Trophy, Flame, Zap, Lock,
   CheckCircle2, ChevronRight, Video, MessageSquare, Star,
   Clock, BookOpen, AlertCircle, Loader2, X, UserCircle,
-  ShieldAlert, RefreshCw, PartyPopper, Medal, Maximize2, Minimize2
+  ShieldAlert, RefreshCw, PartyPopper, Medal, Maximize2, Minimize2, Menu
 } from "lucide-react"
 import { ByteMascot } from "@/components/byte/ByteMascot"
 import { OnboardingTutorial, shouldShowTutorial } from "@/components/byte/OnboardingTutorial"
@@ -26,17 +26,17 @@ const MIN_WATCH_RATIO = 0.85
 
 const TOPICS = [
   { id: "datos",               name: "Tipos de Datos",      icon: "{ }",  description: "Variables, constantes y tipos primitivos" },
-  { id: "operaciones-logicas", name: "Operaciones Lógicas", icon: "&&",   description: "AND, OR, NOT y expresiones booleanas" },
+  { id: "operaciones-logicas", name: "Operaciones LÃ³gicas", icon: "&&",   description: "AND, OR, NOT y expresiones booleanas" },
   { id: "filtros",             name: "Filtros",             icon: "?:",   description: "Filtrado de datos y validaciones" },
   { id: "condicionales",       name: "Condicionales",       icon: "if",   description: "If, else, switch y toma de decisiones" },
   { id: "bucles",              name: "Bucles",              icon: "for",  description: "For, while, do-while e iteraciones" },
-  { id: "funciones",           name: "Funciones",           icon: "fn()", description: "Declaración, parámetros y retorno" },
-  { id: "arreglos",            name: "Arreglos",            icon: "[ ]",  description: "Arrays unidimensionales y métodos" },
+  { id: "funciones",           name: "Funciones",           icon: "fn()", description: "DeclaraciÃ³n, parÃ¡metros y retorno" },
+  { id: "arreglos",            name: "Arreglos",            icon: "[ ]",  description: "Arrays unidimensionales y mÃ©todos" },
   { id: "matrices",            name: "Matrices",            icon: "[[]]", description: "Arrays bidimensionales y operaciones" },
 ]
 
 const DIFFICULTY_LEVELS = [
-  { id: "fácil",    label: "Fácil",    color: "bg-green-500",  border: "border-green-500/50",  text: "text-green-400",  xp: 50  },
+  { id: "fÃ¡cil",    label: "FÃ¡cil",    color: "bg-green-500",  border: "border-green-500/50",  text: "text-green-400",  xp: 50  },
   { id: "medio",    label: "Medio",    color: "bg-yellow-500", border: "border-yellow-500/50", text: "text-yellow-400", xp: 100 },
   { id: "avanzado", label: "Avanzado", color: "bg-red-500",    border: "border-red-500/50",    text: "text-red-400",    xp: 200 },
 ]
@@ -61,16 +61,16 @@ interface StreakPopup {
 
 function streakMessage(popup: StreakPopup): { title: string; sub: string; emoji: string } {
   if (popup.wasReset) {
-    return { emoji: "💪", title: "¡Nuevo inicio!", sub: "Tu racha se reinició — vuelves a empezar. ¡No te rindas!" }
+    return { emoji: "ðŸ’ª", title: "Â¡Nuevo inicio!", sub: "Tu racha se reiniciÃ³ â€” vuelves a empezar. Â¡No te rindas!" }
   }
   const n = popup.streak
-  if (n >= 30) return { emoji: "👑", title: `¡${n} días de racha!`, sub: "Eres una leyenda pura. Nada te detiene." }
-  if (n >= 14) return { emoji: "🔥", title: `¡${n} días seguidos!`, sub: "Dos semanas ininterrumpidas. ¡Eres imparable!" }
-  if (n >= 7)  return { emoji: "🔥", title: `¡${n} días de racha!`, sub: "¡Una semana completa! Sigue construyendo el hábito." }
-  if (n >= 5)  return { emoji: "🔥", title: `¡${n} días seguidos!`, sub: `Llevas ${n} días aprendiendo. ¡Vas muy bien!` }
-  if (n >= 3)  return { emoji: "🔥", title: `¡Racha de ${n} días!`, sub: "La constancia es la clave del aprendizaje." }
-  if (n === 2) return { emoji: "🔥", title: "¡2 días seguidos!", sub: "Buen comienzo — ¡mantén el ritmo!" }
-  return       { emoji: "🚀", title: "¡Bienvenido de vuelta!", sub: "Empieza tu racha de hoy y aprende algo nuevo." }
+  if (n >= 30) return { emoji: "ðŸ‘‘", title: `Â¡${n} dÃ­as de racha!`, sub: "Eres una leyenda pura. Nada te detiene." }
+  if (n >= 14) return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as seguidos!`, sub: "Dos semanas ininterrumpidas. Â¡Eres imparable!" }
+  if (n >= 7)  return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as de racha!`, sub: "Â¡Una semana completa! Sigue construyendo el hÃ¡bito." }
+  if (n >= 5)  return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as seguidos!`, sub: `Llevas ${n} dÃ­as aprendiendo. Â¡Vas muy bien!` }
+  if (n >= 3)  return { emoji: "ðŸ”¥", title: `Â¡Racha de ${n} dÃ­as!`, sub: "La constancia es la clave del aprendizaje." }
+  if (n === 2) return { emoji: "ðŸ”¥", title: "Â¡2 dÃ­as seguidos!", sub: "Buen comienzo â€” Â¡mantÃ©n el ritmo!" }
+  return       { emoji: "ðŸš€", title: "Â¡Bienvenido de vuelta!", sub: "Empieza tu racha de hoy y aprende algo nuevo." }
 }
 
 export default function StudentDashboard() {
@@ -109,14 +109,15 @@ export default function StudentDashboard() {
   const [topicCompletedName, setTopicCompletedName] = useState<string | null>(null)
   const [streakPopup,        setStreakPopup]        = useState<StreakPopup | null>(null)
   const [showTutorial,       setShowTutorial]       = useState(false)
+  const [sidebarOpen,        setSidebarOpen]        = useState(false)
 
-  // ── Auth guard ───────────────────────────────────────────────────────────
+  // â”€â”€ Auth guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "student")) router.push("/login")
     if (user?.progress) setLearningModeLocal(user.progress.learningMode)
   }, [user, isLoading, router])
 
-  // ── Show tutorial on first visit ────────────────────────────────────────
+  // â”€â”€ Show tutorial on first visit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (user && shouldShowTutorial(user.id)) {
       const t = setTimeout(() => setShowTutorial(true), 600)
@@ -124,11 +125,11 @@ export default function StudentDashboard() {
     }
   }, [user])
 
-  // ── Daily login streak check (once per calendar day, not once per tab) ──
+  // â”€â”€ Daily login streak check (once per calendar day, not once per tab) â”€â”€
   useEffect(() => {
     if (!user || !token) return
-    // Guarda la fecha de hoy en vez de un flag fijo — así si vuelves al día
-    // siguiente en la misma pestaña (sin cerrarla), el check se vuelve a disparar.
+    // Guarda la fecha de hoy en vez de un flag fijo â€” asÃ­ si vuelves al dÃ­a
+    // siguiente en la misma pestaÃ±a (sin cerrarla), el check se vuelve a disparar.
     const today   = new Date().toISOString().slice(0, 10)
     const seenKey = `streak-checked-${user.id}`
     if (sessionStorage.getItem(seenKey) === today) return
@@ -149,7 +150,7 @@ export default function StudentDashboard() {
     })
   }, [user, token])
 
-  // ── Load watched-videos history ──────────────────────────────────────────
+  // â”€â”€ Load watched-videos history â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!user || !token) return
     fetch(`${API}/students/${user.id}/watched-videos`, {
@@ -170,7 +171,7 @@ export default function StudentDashboard() {
       .catch(() => {})
   }, [user, token])
 
-  // ── Reset segment tracking on new video ─────────────────────────────────
+  // â”€â”€ Reset segment tracking on new video â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     watchedSecsRef.current = 0
     lastTimeRef.current    = null
@@ -178,8 +179,8 @@ export default function StudentDashboard() {
     setWatchWarning("")
   }, [currentVideo])
 
-  // ── Track fullscreen state (pantalla completa debe ser del contenedor, no
-  //    del <video> solo, para que el overlay de preguntas siga siendo visible) ──
+  // â”€â”€ Track fullscreen state (pantalla completa debe ser del contenedor, no
+  //    del <video> solo, para que el overlay de preguntas siga siendo visible) â”€â”€
   useEffect(() => {
     const onFsChange = () => setIsFullscreen(document.fullscreenElement === videoContainerRef.current)
     document.addEventListener("fullscreenchange", onFsChange)
@@ -194,7 +195,7 @@ export default function StudentDashboard() {
     }
   }
 
-  // ── Load adaptive questions for the current video ───────────────────────
+  // â”€â”€ Load adaptive questions for the current video â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     setQuestions([])
     setAnsweredIds(new Set())
@@ -229,7 +230,7 @@ export default function StudentDashboard() {
   const isLevelWatched = (topicId: string, nivel: string) =>
     watchedMap[topicId]?.has(nivel.toLowerCase()) ?? false
 
-  // ── Fetch video by topic + difficulty ────────────────────────────────────
+  // â”€â”€ Fetch video by topic + difficulty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSelectDifficulty = async (topic: typeof TOPICS[0], nivel: string) => {
     setCurrentVideo(null)
     setVideoError("")
@@ -249,7 +250,7 @@ export default function StudentDashboard() {
         })
         found
           ? setCurrentVideo(found)
-          : setVideoError(`Aún no hay un video de "${topic.name}" en nivel ${nivel}. El docente lo generará pronto.`)
+          : setVideoError(`AÃºn no hay un video de "${topic.name}" en nivel ${nivel}. El docente lo generarÃ¡ pronto.`)
       }
     } catch {
       setVideoError("No se pudo conectar con el servidor.")
@@ -257,7 +258,7 @@ export default function StudentDashboard() {
     setLoadingVideo(false)
   }
 
-  // ── Segment tracking ─────────────────────────────────────────────────────
+  // â”€â”€ Segment tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget
     const now   = video.currentTime
@@ -268,7 +269,7 @@ export default function StudentDashboard() {
     lastTimeRef.current = now
     if (video.duration > 0) setWatchedPct(Math.round(Math.min(watchedSecsRef.current / video.duration, 1) * 100))
 
-    // ── Pausar para mostrar una pregunta adaptativa al llegar a su timestamp ──
+    // â”€â”€ Pausar para mostrar una pregunta adaptativa al llegar a su timestamp â”€â”€
     if (!activeQuestion) {
       const pendiente = questions.find(q => !answeredIds.has(q.id) && now >= q.triggerTimeSec)
       if (pendiente) {
@@ -284,13 +285,13 @@ export default function StudentDashboard() {
     videoRef.current?.play()
   }
 
-  // ── Video ended ──────────────────────────────────────────────────────────
+  // â”€â”€ Video ended â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleVideoEnded = async () => {
     if (!currentVideo || !currentTopicId || !currentDifficulty) return
 
     if (watchedPct < MIN_WATCH_RATIO * 100) {
       setWatchWarning(
-        `Solo viste el ${watchedPct}% del video. Necesitas ver al menos el ${MIN_WATCH_RATIO * 100}% para ganar XP. ¡No hagas trampa! 😅`
+        `Solo viste el ${watchedPct}% del video. Necesitas ver al menos el ${MIN_WATCH_RATIO * 100}% para ganar XP. Â¡No hagas trampa! ðŸ˜…`
       )
       return
     }
@@ -314,7 +315,7 @@ export default function StudentDashboard() {
 
     // Show module completion notification
     if (result.topicCompleted) {
-      const topicName = TOPICS.find(t => t.id === currentTopicId)?.name ?? "módulo"
+      const topicName = TOPICS.find(t => t.id === currentTopicId)?.name ?? "mÃ³dulo"
       setTopicCompletedName(topicName)
       setTimeout(() => setTopicCompletedName(null), 6000)
     }
@@ -332,491 +333,469 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {showTutorial && (
-        <OnboardingTutorial userId={user.id} onClose={() => setShowTutorial(false)} />
+    <div className="flex h-screen bg-background overflow-hidden">
+      {showTutorial && <OnboardingTutorial userId={user.id} onClose={() => setShowTutorial(false)} />}
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-              <Terminal className="w-5 h-5 text-primary" />
+      {/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <aside className={`
+        fixed md:static z-50 md:z-auto inset-y-0 left-0
+        w-60 flex-shrink-0 flex flex-col
+        bg-[oklch(0.10_0.025_240)] border-r border-border/50
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}>
+        <div className="h-14 flex items-center gap-2.5 px-5 border-b border-border/40 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Terminal className="w-4 h-4 text-primary" />
             </div>
-            <span className="text-lg font-bold">CodePath<span className="text-primary">AI</span></span>
+            <span className="font-bold tracking-tight text-sm">CodePath<span className="text-primary">AI</span></span>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-              <Flame className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium text-accent">{progress.streak} días</span>
-            </div>
+        </div>
+
+        <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
+          <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase px-3 mb-3">Aprender</p>
+          {([
+            { href: "/dashboard/student",              icon: BookOpen,      label: "Mi Aprendizaje", active: true  },
+            { href: "/dashboard/student/achievements", icon: Trophy,        label: "Logros"                        },
+            { href: "/dashboard/student/chat",         icon: MessageSquare, label: "Chat con Byte"                 },
+            { href: "/dashboard/student/profile",      icon: UserCircle,    label: "Mi Perfil"                     },
+          ] as {href:string;icon:React.ElementType;label:string;active?:boolean}[]).map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                item.active
+                  ? "bg-primary/15 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+              }`}
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-border/40 space-y-3 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
             <Link href="/dashboard/student/profile">
-              <Avatar className="w-9 h-9 border border-primary/30 hover:border-primary transition-colors cursor-pointer">
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  {user.name.split(" ").map((n: string) => n[0]).join("")}
+              <Avatar className="w-8 h-8 border border-primary/30 hover:border-primary transition-colors cursor-pointer flex-shrink-0">
+                <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+                  {user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
             </Link>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">Nivel {progress.level}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate leading-tight">{user.name}</p>
+              <p className="text-[11px] text-muted-foreground leading-tight">Nivel {progress.level}</p>
             </div>
-            <Link href="/dashboard/student/achievements">
-              <Button variant="ghost" size="icon" className="hidden md:flex" title="Logros">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-              </Button>
-            </Link>
-            <Link href="/dashboard/student/profile">
-              <Button variant="ghost" size="icon" className="hidden md:flex"><UserCircle className="w-4 h-4" /></Button>
-            </Link>
-            <Button variant="ghost" size="icon" onClick={() => { logout(); router.push("/") }}>
-              <LogOut className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="w-7 h-7 flex-shrink-0 text-muted-foreground" onClick={() => { logout(); router.push("/") }}>
+              <LogOut className="w-3.5 h-3.5" />
             </Button>
           </div>
+          <div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
+              <span className="font-mono">{progress.totalXP % 500} XP</span>
+              <span>/ 500 prÃ³x. nivel</span>
+            </div>
+            <div className="h-1.5 bg-secondary/80 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+                style={{ width: `${(progress.totalXP % 500) / 500 * 100}%` }}
+              />
+            </div>
+          </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="container mx-auto px-4 py-8">
+      {/* â”€â”€ Main area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* ── Streak popup (daily login) ──────────────────────────────────── */}
-        {streakPopup && (() => {
-          const msg = streakMessage(streakPopup)
-          return (
-            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-400 w-full max-w-sm px-4">
-              <div className={`rounded-2xl shadow-2xl p-5 border flex items-start gap-4 ${
-                streakPopup.wasReset
-                  ? "bg-card border-border"
-                  : "bg-gradient-to-br from-orange-500/20 via-card to-card border-orange-500/30"
-              }`}>
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 ${
-                  streakPopup.wasReset ? "bg-secondary" : "bg-orange-500/20"
+        {/* Top bar */}
+        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-border/40 bg-background/60 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="hidden md:block">
+              <p className="text-sm">
+                <span className="text-muted-foreground">Hola, </span>
+                <span className="font-semibold">{user.name.split(" ")[0]}</span>
+                <span className="ml-1">ðŸ‘‹</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20">
+              <Flame className="w-3.5 h-3.5 text-orange-400" />
+              <span className="text-sm font-bold text-orange-400 font-mono">{progress.streak}</span>
+              <span className="text-xs text-orange-400/70 hidden sm:inline">dÃ­as</span>
+            </div>
+            <Link href="/dashboard/student/achievements">
+              <button className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+              </button>
+            </Link>
+          </div>
+        </header>
+
+        {/* Scrollable content */}
+        <main className="flex-1 overflow-y-auto">
+
+          {/* Floating notifications */}
+          {streakPopup && (() => {
+            const msg = streakMessage(streakPopup)
+            return (
+              <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-400 w-full max-w-sm px-4">
+                <div className={`rounded-2xl shadow-2xl p-4 border flex items-start gap-3 ${
+                  streakPopup.wasReset ? "bg-card border-border" : "bg-gradient-to-br from-orange-500/15 via-card to-card border-orange-500/30"
                 }`}>
-                  {msg.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-bold text-base ${streakPopup.wasReset ? "" : "text-orange-300"}`}>
-                    {msg.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{msg.sub}</p>
-                  {!streakPopup.wasReset && (
-                    <div className="mt-2 flex items-center gap-1.5">
-                      {Array.from({ length: Math.min(streakPopup.streak, 7) }).map((_, i) => (
-                        <div key={i} className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                          i < streakPopup.streak ? "bg-orange-500/30 text-orange-300" : "bg-secondary text-muted-foreground"
-                        }`}>
-                          🔥
-                        </div>
-                      ))}
-                      {streakPopup.streak > 7 && (
-                        <span className="text-xs text-orange-400 font-medium">+{streakPopup.streak - 7} más</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setStreakPopup(null)}
-                  className="text-muted-foreground hover:text-foreground flex-shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* ── XP notification ─────────────────────────────────────────────── */}
-        {xpNotif && (
-          <div className="fixed top-20 right-6 z-50 animate-in slide-in-from-right-4 fade-in duration-300">
-            <div className={`px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 ${
-              xpNotif.isFirstWatch ? "bg-primary text-primary-foreground" : "bg-secondary border border-border"
-            }`}>
-              <Zap className={`w-5 h-5 ${xpNotif.isFirstWatch ? "" : "text-yellow-400"}`} />
-              <div>
-                <p className="font-bold text-sm">+{xpNotif.xp} XP {xpNotif.isFirstWatch ? "" : "(re-vista)"}</p>
-                <p className={`text-xs ${xpNotif.isFirstWatch ? "opacity-80" : "text-muted-foreground"}`}>
-                  {xpNotif.isFirstWatch ? "¡Primera vez que ves este video! 🎉" : "Ya viste este video — XP reducido"}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Module-complete banner ───────────────────────────────────────── */}
-        {topicCompletedName && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-gradient-to-r from-primary to-accent text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3">
-              <PartyPopper className="w-6 h-6 flex-shrink-0" />
-              <div>
-                <p className="font-bold">¡Módulo completado!</p>
-                <p className="text-sm opacity-90">{topicCompletedName} — has visto los 3 niveles 🚀</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Video player ────────────────────────────────────────────────── */}
-        {(currentVideo || loadingVideo || videoError) && (
-          <Card className="bg-card/50 border-border/50 mb-8">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">
-                    {loadingVideo ? "Buscando video..." : currentVideo?.titulo || "Video no disponible"}
-                  </CardTitle>
-                  {currentVideo && (
-                    <CardDescription className="mt-1">
-                      {currentVideo.subtema} · {currentVideo.duracionEstimada} · {currentVideo.slides} slides
-                    </CardDescription>
-                  )}
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={closeVideo}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {currentVideo && !loadingVideo && (
-                <div className="mt-3 space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Progreso visto</span>
-                    <span className={watchedPct >= MIN_WATCH_RATIO * 100 ? "text-green-400 font-medium" : "text-muted-foreground"}>
-                      {watchedPct}% / {MIN_WATCH_RATIO * 100}% mínimo
-                    </span>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${streakPopup.wasReset ? "bg-secondary" : "bg-orange-500/20"}`}>
+                    {msg.emoji}
                   </div>
-                  <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        watchedPct >= MIN_WATCH_RATIO * 100 ? "bg-green-500" : "bg-primary"
-                      }`}
-                      style={{ width: `${watchedPct}%` }}
-                    />
-                    {/* 85% threshold marker */}
-                    <div className="absolute top-0 bottom-0 w-0.5 bg-white/50" style={{ left: `${MIN_WATCH_RATIO * 100}%` }} />
-                  </div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <ShieldAlert className="w-3 h-3 text-yellow-400" />
-                    El sistema detecta saltos — ve el video completo para ganar XP
-                  </p>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              {loadingVideo && (
-                <div className="aspect-video bg-secondary rounded-xl flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Cargando video...</p>
-                  </div>
-                </div>
-              )}
-              {videoError && !loadingVideo && (
-                <div className="aspect-video bg-secondary rounded-xl flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-4 px-8 text-center">
-                    <ByteMascot expression="sad" size={100} />
-                    <div>
-                      <p className="text-muted-foreground font-medium">{videoError}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Mientras tanto, puedes usar el chatbot para aprender este tema.</p>
-                    </div>
-                    <Link href="/dashboard/student/chat">
-                      <Button size="sm" variant="outline" className="gap-2">
-                        <Bot className="w-4 h-4" />Preguntarle a Byte
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              )}
-              {currentVideo && !loadingVideo && (
-                <>
-                  <div ref={videoContainerRef} className={`relative ${isFullscreen ? "flex items-center bg-black" : ""}`}>
-                    <video
-                      ref={videoRef}
-                      src={currentVideo.videoUrl}
-                      controls autoPlay
-                      controlsList="nofullscreen"
-                      className="w-full rounded-xl bg-black"
-                      onTimeUpdate={handleTimeUpdate}
-                      onEnded={handleVideoEnded}
-                      onError={() => setVideoError("No se pudo cargar el video. Verifica que el servidor Python esté activo.")}
-                    />
-                    <button
-                      onClick={toggleFullscreen}
-                      title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-                      className="absolute bottom-3 right-3 w-9 h-9 rounded-lg bg-black/60 hover:bg-black/80 flex items-center justify-center text-white transition-colors"
-                    >
-                      {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                    </button>
-                    {activeQuestion && (
-                      <QuestionOverlay
-                        question={activeQuestion}
-                        token={token}
-                        onAnswered={handleQuestionAnswered}
-                      />
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-bold text-sm ${streakPopup.wasReset ? "" : "text-orange-300"}`}>{msg.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{msg.sub}</p>
+                    {!streakPopup.wasReset && (
+                      <div className="mt-2 flex items-center gap-1">
+                        {Array.from({ length: Math.min(streakPopup.streak, 7) }).map((_, i) => (
+                          <div key={i} className="w-5 h-5 rounded-full bg-orange-500/30 flex items-center justify-center text-[10px]">ðŸ”¥</div>
+                        ))}
+                        {streakPopup.streak > 7 && <span className="text-xs text-orange-400 font-medium ml-0.5">+{streakPopup.streak - 7}</span>}
+                      </div>
                     )}
                   </div>
-                  {watchWarning && (
-                    <div className="mt-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3">
-                      <ShieldAlert className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-yellow-300 font-medium">{watchWarning}</p>
-                        <button
-                          className="mt-1 text-xs text-yellow-400 underline flex items-center gap-1"
-                          onClick={() => { setWatchWarning(""); watchedSecsRef.current = 0; lastTimeRef.current = null; setWatchedPct(0) }}
-                        >
-                          <RefreshCw className="w-3 h-3" />Reintentar desde el inicio
-                        </button>
+                  <button onClick={() => setStreakPopup(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )
+          })()}
+
+          {xpNotif && (
+            <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right-4 fade-in duration-300">
+              <div className={`px-4 py-3 rounded-xl shadow-lg border flex items-center gap-3 ${
+                xpNotif.isFirstWatch ? "bg-primary/20 border-primary/40 text-primary" : "bg-card border-border"
+              }`}>
+                <Zap className="w-4 h-4 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-sm">+{xpNotif.xp} XP</p>
+                  <p className="text-xs opacity-70">{xpNotif.isFirstWatch ? "Â¡Primera vez!" : "Re-vista (-60%)"}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {topicCompletedName && (
+            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+              <div className="bg-gradient-to-r from-primary to-accent text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3">
+                <PartyPopper className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-sm">Â¡MÃ³dulo completado!</p>
+                  <p className="text-xs opacity-90">{topicCompletedName} â€” 3 niveles vistos ðŸš€</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="p-4 md:p-6 lg:p-8 space-y-5">
+
+            {/* â”€â”€ Video player â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {(currentVideo || loadingVideo || videoError) && (
+              <div className="rounded-2xl border border-border/50 bg-card/40 overflow-hidden">
+                <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="font-semibold text-sm">
+                      {loadingVideo ? "Buscando video..." : currentVideo?.titulo || "Video no disponible"}
+                    </h2>
+                    {currentVideo && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {currentVideo.subtema} Â· {currentVideo.duracionEstimada} Â· {currentVideo.slides} slides
+                      </p>
+                    )}
+                  </div>
+                  <button onClick={closeVideo} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {currentVideo && !loadingVideo && (
+                  <div className="px-5 pb-3">
+                    <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
+                      <span className="flex items-center gap-1"><ShieldAlert className="w-2.5 h-2.5 text-yellow-400" />Progreso anti-trampa</span>
+                      <span className={watchedPct >= MIN_WATCH_RATIO * 100 ? "text-green-400 font-semibold" : ""}>{watchedPct}% / 85%</span>
+                    </div>
+                    <div className="relative h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${watchedPct >= MIN_WATCH_RATIO * 100 ? "bg-green-500" : "bg-primary"}`}
+                        style={{ width: `${watchedPct}%` }}
+                      />
+                      <div className="absolute top-0 bottom-0 w-px bg-white/30" style={{ left: "85%" }} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="px-5 pb-5">
+                  {loadingVideo && (
+                    <div className="aspect-video bg-secondary/50 rounded-xl flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Cargando video...</p>
                       </div>
                     </div>
                   )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Stats ───────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: Zap,           value: progress.totalXP,         label: "XP Total",       color: "text-primary",    bg: "bg-primary/10"    },
-            { icon: Trophy,        value: progress.level,           label: "Nivel",           color: "text-accent",     bg: "bg-accent/10"     },
-            { icon: Video,         value: progress.videosWatched,   label: "Videos vistos",  color: "text-blue-500",   bg: "bg-blue-500/10"   },
-            { icon: MessageSquare, value: progress.chatbotSessions, label: "Sesiones chat",  color: "text-purple-500", bg: "bg-purple-500/10" },
-          ].map((s, i) => (
-            <Card key={i} className="bg-card/50 border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg ${s.bg} flex items-center justify-center`}>
-                  <s.icon className={`w-5 h-5 ${s.color}`} />
-                </div>
-                <div>
-                  <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* ── Progreso general ────────────────────────────────────────────── */}
-        <Card className="bg-card/50 border-border/50 mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />Tu Progreso
-            </CardTitle>
-            <CardDescription>{completedCount} de {TOPICS.length} módulos completados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Progress value={progressPct} className="h-3 mb-2" />
-            <p className="text-sm text-muted-foreground">{progressPct.toFixed(0)}% del curso completado</p>
-          </CardContent>
-        </Card>
-
-        {/* ── Modo de aprendizaje ─────────────────────────────────────────── */}
-        <Card className="bg-card/50 border-border/50 mb-8">
-          <CardHeader>
-            <CardTitle>Modo de Aprendizaje</CardTitle>
-            <CardDescription>Elige cómo quieres aprender cada tema</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { mode: "video",   icon: Video, label: "Videos IA",  desc: "Aprende con videos generados por IA",   active: "border-primary bg-primary/10", iconColor: "text-primary", href: null                      },
-                { mode: "chatbot", icon: Bot,   label: "Chatbot",    desc: "Chatea con CodeBot, tu tutor de IA",    active: "border-accent bg-accent/10",   iconColor: "text-accent",  href: "/dashboard/student/chat" },
-              ].map(m => {
-                const inner = (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${learningModeLocal === m.mode ? "bg-primary/20" : "bg-secondary"}`}>
-                      <m.icon className={`w-6 h-6 ${learningModeLocal === m.mode ? m.iconColor : "text-muted-foreground"}`} />
+                  {videoError && !loadingVideo && (
+                    <div className="aspect-video bg-secondary/30 rounded-xl flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-4 px-8 text-center">
+                        <ByteMascot expression="sad" size={90} />
+                        <div>
+                          <p className="text-sm text-muted-foreground">{videoError}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Usa el chatbot mientras tanto.</p>
+                        </div>
+                        <Link href="/dashboard/student/chat">
+                          <Button size="sm" variant="outline" className="gap-2"><Bot className="w-4 h-4" />Preguntarle a Byte</Button>
+                        </Link>
+                      </div>
                     </div>
-                    <span className={`font-medium ${learningModeLocal === m.mode ? m.iconColor : ""}`}>{m.label}</span>
-                    <p className="text-xs text-muted-foreground text-center">{m.desc}</p>
+                  )}
+                  {currentVideo && !loadingVideo && (
+                    <>
+                      <div ref={videoContainerRef} className={`relative ${isFullscreen ? "flex items-center bg-black" : ""}`}>
+                        <video
+                          ref={videoRef}
+                          src={currentVideo.videoUrl}
+                          controls autoPlay
+                          controlsList="nofullscreen"
+                          className="w-full rounded-xl bg-black"
+                          onTimeUpdate={handleTimeUpdate}
+                          onEnded={handleVideoEnded}
+                          onError={() => setVideoError("No se pudo cargar el video. Verifica que el servidor Python estÃ© activo.")}
+                        />
+                        <button
+                          onClick={toggleFullscreen}
+                          title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                          className="absolute bottom-3 right-3 w-8 h-8 rounded-lg bg-black/60 hover:bg-black/80 flex items-center justify-center text-white transition-colors"
+                        >
+                          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                        </button>
+                        {activeQuestion && (
+                          <QuestionOverlay question={activeQuestion} token={token} onAnswered={handleQuestionAnswered} />
+                        )}
+                      </div>
+                      {watchWarning && (
+                        <div className="mt-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3">
+                          <ShieldAlert className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-yellow-300">{watchWarning}</p>
+                            <button
+                              className="mt-1 text-xs text-yellow-400 underline flex items-center gap-1"
+                              onClick={() => { setWatchWarning(""); watchedSecsRef.current = 0; lastTimeRef.current = null; setWatchedPct(0) }}
+                            >
+                              <RefreshCw className="w-3 h-3" />Reintentar desde el inicio
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* â”€â”€ Stats tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+              {[
+                { icon: Zap,           value: progress.totalXP,         label: "XP TOTAL",      border: "border-l-primary",    bg: "bg-primary/5",    text: "text-primary"    },
+                { icon: Trophy,        value: `Nv.Â ${progress.level}`, label: "NIVEL",      border: "border-l-accent",     bg: "bg-accent/5",     text: "text-accent"     },
+                { icon: Video,         value: progress.videosWatched,   label: "VIDEOS VISTOS", border: "border-l-blue-400",   bg: "bg-blue-500/5",   text: "text-blue-400"   },
+                { icon: MessageSquare, value: progress.chatbotSessions, label: "SESIONES CHAT", border: "border-l-violet-400", bg: "bg-violet-500/5", text: "text-violet-400" },
+              ].map((s, i) => (
+                <div key={i} className={`${s.bg} border border-border/40 border-l-2 ${s.border} rounded-2xl p-4 flex items-center gap-3`}>
+                  <s.icon className={`w-4 h-4 ${s.text} flex-shrink-0`} />
+                  <div>
+                    <p className={`text-xl font-bold font-mono leading-tight ${s.text}`}>
+                      {typeof s.value === "number" ? s.value.toLocaleString() : s.value}
+                    </p>
+                    <p className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase mt-0.5">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* â”€â”€ Course progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <div className="rounded-2xl border border-border/40 bg-card/30 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-semibold text-sm">Progreso del curso</h2>
+                  <p className="text-xs text-muted-foreground">{completedCount} de {TOPICS.length} mÃ³dulos completados</p>
+                </div>
+                <span className="text-2xl font-bold font-mono text-primary">{progressPct.toFixed(0)}%</span>
+              </div>
+              <div className="h-2 bg-secondary/60 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-700" style={{ width: `${progressPct}%` }} />
+              </div>
+              <div className="flex items-center gap-1 mt-2.5">
+                {TOPICS.map((t) => (
+                  <div key={t.id} title={t.name} className={`h-1 flex-1 rounded-full transition-colors ${progress.completedTopics.includes(t.id) ? "bg-primary" : "bg-border/40"}`} />
+                ))}
+              </div>
+            </div>
+
+            {/* â”€â”€ Learning mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border/30">
+              {([
+                { mode: "video",   icon: Video, label: "Videos IA",    href: null,                        iconColor: "text-primary" },
+                { mode: "chatbot", icon: Bot,   label: "Chat con Byte", href: "/dashboard/student/chat",  iconColor: "text-accent"  },
+              ] as {mode:string;icon:React.ElementType;label:string;href:string|null;iconColor:string}[]).map(m => {
+                const isActive = learningModeLocal === m.mode
+                const inner = (
+                  <div className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                    isActive ? "bg-card shadow-sm border border-border/50 text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                    <m.icon className={`w-4 h-4 ${isActive ? m.iconColor : ""}`} />
+                    {m.label}
                   </div>
                 )
                 return m.href ? (
-                  <Link key={m.mode} href={m.href}>
-                    <button onClick={() => handleLearningModeChange(m.mode as "video" | "chatbot")}
-                      className={`w-full p-4 rounded-xl border-2 transition-all ${learningModeLocal === m.mode ? m.active : "border-border/50 hover:border-primary/30"}`}>
-                      {inner}
-                    </button>
-                  </Link>
+                  <Link key={m.mode} href={m.href} className="flex-1" onClick={() => handleLearningModeChange(m.mode as "video" | "chatbot")}>{inner}</Link>
                 ) : (
-                  <button key={m.mode} onClick={() => handleLearningModeChange(m.mode as "video" | "chatbot")}
-                    className={`p-4 rounded-xl border-2 transition-all ${learningModeLocal === m.mode ? m.active : "border-border/50 hover:border-primary/30"}`}>
-                    {inner}
-                  </button>
+                  <button key={m.mode} className="flex-1" onClick={() => handleLearningModeChange(m.mode as "video" | "chatbot")}>{inner}</button>
                 )
               })}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* ── Camino de aprendizaje ────────────────────────────────────────── */}
-        <Card className="bg-card/50 border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Terminal className="w-5 h-5 text-primary" />Camino de Aprendizaje
-            </CardTitle>
-            <CardDescription>Completa los 3 niveles de cada módulo para desbloquear el siguiente</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {TOPICS.map((topic, index) => {
-                const status     = getTopicStatus(topic.id, index)
-                const isSelected = selectedTopic === topic.id
-                const watched    = watchedCount(topic.id)         // 0, 1, 2 o 3
-                const isComplete = status === "completed"
+            {/* â”€â”€ Topics grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-semibold">Camino de aprendizaje</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Completa los 3 niveles de cada mÃ³dulo para desbloquear el siguiente</p>
+                </div>
+                <span className="text-xs text-muted-foreground font-mono">{completedCount}/{TOPICS.length}</span>
+              </div>
 
-                return (
-                  <div key={topic.id} className="relative">
-                    {index < TOPICS.length - 1 && (
-                      <div className={`absolute left-6 top-16 w-0.5 h-8 ${isComplete ? "bg-primary" : "bg-border"}`} />
-                    )}
+              <div className="grid md:grid-cols-2 gap-3">
+                {TOPICS.map((topic, index) => {
+                  const status     = getTopicStatus(topic.id, index)
+                  const isSelected = selectedTopic === topic.id
+                  const watched    = watchedCount(topic.id)
+                  const isComplete = status === "completed"
 
-                    <button
-                      onClick={() => {
-                        if (status === "locked") return
-                        setSelectedTopic(isSelected ? null : topic.id)
-                        setCurrentVideo(null); setVideoError(""); setWatchWarning("")
-                      }}
-                      disabled={status === "locked"}
-                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                        status === "locked"
-                          ? "border-border/30 bg-secondary/20 opacity-60 cursor-not-allowed"
-                          : isComplete
-                          ? "border-primary/50 bg-primary/5 hover:bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
-                      } ${isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Icon */}
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-mono text-lg font-bold flex-shrink-0 ${
-                          isComplete         ? "bg-primary/20 text-primary"
-                          : status === "locked" ? "bg-secondary text-muted-foreground"
-                          : "bg-secondary text-foreground"
-                        }`}>
-                          {isComplete         ? <CheckCircle2 className="w-6 h-6" />
-                          : status === "locked" ? <Lock className="w-5 h-5" />
-                          : topic.icon}
-                        </div>
+                  return (
+                    <div key={topic.id}>
+                      <button
+                        onClick={() => {
+                          if (status === "locked") return
+                          setSelectedTopic(isSelected ? null : topic.id)
+                          setCurrentVideo(null); setVideoError(""); setWatchWarning("")
+                        }}
+                        disabled={status === "locked"}
+                        className={`w-full p-4 rounded-2xl border transition-all text-left ${
+                          status === "locked"   ? "border-border/20 bg-secondary/10 opacity-40 cursor-not-allowed"
+                          : isComplete          ? "border-primary/30 bg-primary/5 hover:bg-primary/8"
+                          : isSelected          ? "border-primary/40 bg-card/60 ring-1 ring-primary/20"
+                          :                       "border-border/40 bg-card/20 hover:border-primary/30 hover:bg-card/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-mono text-sm font-bold flex-shrink-0 ${
+                            isComplete          ? "bg-primary/20 text-primary"
+                            : status === "locked" ? "bg-secondary/30 text-muted-foreground"
+                            : isSelected          ? "bg-primary/15 text-primary"
+                            :                       "bg-secondary/60 text-foreground"
+                          }`}>
+                            {isComplete          ? <CheckCircle2 className="w-5 h-5" />
+                            : status === "locked" ? <Lock className="w-4 h-4" />
+                            : topic.icon}
+                          </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className={`font-semibold ${status === "locked" ? "text-muted-foreground" : ""}`}>{topic.name}</h3>
-                            {isComplete && <Badge variant="secondary" className="bg-primary/20 text-primary border-0 text-xs">✓ Completado</Badge>}
-                            {progress.currentTopic === topic.id && !isComplete && (
-                              <Badge variant="secondary" className="bg-accent/20 text-accent border-0 text-xs">En progreso</Badge>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h3 className={`font-semibold text-sm ${status === "locked" ? "text-muted-foreground" : ""}`}>{topic.name}</h3>
+                              {isComplete && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-semibold">âœ“</span>}
+                              {progress.currentTopic === topic.id && !isComplete && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent font-semibold">Activo</span>}
+                            </div>
+                            <p className={`text-xs truncate ${status === "locked" ? "text-muted-foreground/40" : "text-muted-foreground"}`}>{topic.description}</p>
+                            {status !== "locked" && (
+                              <div className="flex items-center gap-1 mt-2">
+                                {DIFFICULTY_LEVELS.map(lvl => (
+                                  <div key={lvl.id} title={lvl.label} className={`h-1 rounded-full flex-1 transition-all ${isLevelWatched(topic.id, lvl.id) ? lvl.color : "bg-border/40"}`} />
+                                ))}
+                                <span className="text-[10px] text-muted-foreground ml-1.5 font-mono">{watched}/3</span>
+                              </div>
                             )}
                           </div>
-                          <p className={`text-sm truncate ${status === "locked" ? "text-muted-foreground/60" : "text-muted-foreground"}`}>
-                            {topic.description}
-                          </p>
 
-                          {/* Mini progress dots for available/in-progress topics */}
-                          {status !== "locked" && !isComplete && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              {DIFFICULTY_LEVELS.map(lvl => {
-                                const seen = isLevelWatched(topic.id, lvl.id)
-                                return (
-                                  <div key={lvl.id} className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
-                                    seen ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
-                                  }`}>
-                                    {seen && <CheckCircle2 className="w-2.5 h-2.5" />}
-                                    <span>{lvl.label}</span>
-                                  </div>
-                                )
-                              })}
-                              <span className="text-xs text-muted-foreground ml-1">{watched}/3</span>
-                            </div>
-                          )}
-                          {/* For completed topics, show all 3 checked */}
-                          {isComplete && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              {DIFFICULTY_LEVELS.map(lvl => (
-                                <div key={lvl.id} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
-                                  <CheckCircle2 className="w-2.5 h-2.5" />
-                                  <span>{lvl.label}</span>
-                                </div>
-                              ))}
-                            </div>
+                          {status !== "locked" && (
+                            <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform flex-shrink-0 ${isSelected ? "rotate-90 text-primary" : ""}`} />
                           )}
                         </div>
+                      </button>
 
-                        {status !== "locked" && (
-                          <ChevronRight className={`w-5 h-5 transition-transform flex-shrink-0 ${isSelected ? "text-primary rotate-90" : "text-muted-foreground"}`} />
-                        )}
-                      </div>
-                    </button>
-
-                    {/* ── Difficulty panel ─────────────────────────────── */}
-                    {isSelected && status !== "locked" && (
-                      <div className="mt-3 ml-16 p-4 rounded-xl bg-secondary/30 border border-border/50">
-                        <h4 className="font-medium mb-1 text-sm">Selecciona el nivel de dificultad:</h4>
-                        <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
-                          <ShieldAlert className="w-3 h-3 text-yellow-400" />
-                          Debes ver al menos el 85% del video para obtener XP
-                        </p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {DIFFICULTY_LEVELS.map(level => {
-                            const seen = isLevelWatched(topic.id, level.id)
-                            return (
-                              <button
-                                key={level.id}
-                                onClick={() => handleSelectDifficulty(topic, level.id)}
-                                disabled={loadingVideo}
-                                className={`relative p-3 rounded-lg border transition-all group disabled:opacity-50 ${
-                                  seen
-                                    ? "bg-primary/10 border-primary/40"
-                                    : `bg-card/50 ${level.border} hover:bg-card`
-                                }`}
-                              >
-                                {/* Watched badge */}
-                                {seen && (
-                                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow">
-                                    <CheckCircle2 className="w-3 h-3 text-white" />
-                                  </div>
-                                )}
-
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className={`w-3 h-3 rounded-full ${level.color}`} />
-                                  <span className={`font-medium text-sm ${seen ? "text-primary" : level.text}`}>{level.label}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Star className="w-3 h-3" />
-                                  <span>{seen ? `+${Math.floor(level.xp * 0.4)} XP` : `+${level.xp} XP`}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                  <Clock className="w-3 h-3" />
-                                  <span>~3 min</span>
-                                </div>
-                                {seen && (
-                                  <p className="text-xs text-primary/70 mt-1">Visto ✓</p>
-                                )}
-                                <div className="mt-2 flex items-center justify-center">
-                                  {loadingVideo
-                                    ? <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                                    : <Play className={`w-4 h-4 ${seen ? "text-primary/50 opacity-100" : "text-primary opacity-0 group-hover:opacity-100"} transition-opacity`} />
-                                  }
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-
-                        {/* All 3 watched → show completion hint */}
-                        {watched === 3 && !isComplete && (
-                          <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/30 text-sm text-primary flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                            ¡Has visto todos los niveles! El módulo se completará automáticamente.
+                      {/* Difficulty panel */}
+                      {isSelected && status !== "locked" && (
+                        <div className="mt-2 p-4 rounded-2xl bg-secondary/20 border border-border/30">
+                          <div className="flex items-center gap-2 mb-3">
+                            <ShieldAlert className="w-3 h-3 text-yellow-400 flex-shrink-0" />
+                            <p className="text-[11px] text-muted-foreground">Ver al menos 85% del video para ganar XP</p>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+                          <div className="grid grid-cols-3 gap-2">
+                            {DIFFICULTY_LEVELS.map(level => {
+                              const seen = isLevelWatched(topic.id, level.id)
+                              return (
+                                <button
+                                  key={level.id}
+                                  onClick={() => handleSelectDifficulty(topic, level.id)}
+                                  disabled={loadingVideo}
+                                  className={`relative p-3 rounded-xl border transition-all text-left group disabled:opacity-50 ${
+                                    seen ? "bg-primary/10 border-primary/30" : "bg-card/50 border-border/50 hover:border-primary/40 hover:bg-card/80"
+                                  }`}
+                                >
+                                  {seen && (
+                                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                      <CheckCircle2 className="w-2.5 h-2.5 text-white" />
+                                    </div>
+                                  )}
+                                  <div className={`w-2 h-2 rounded-full ${level.color} mb-1.5`} />
+                                  <p className={`font-semibold text-xs ${seen ? "text-primary" : level.text}`}>{level.label}</p>
+                                  <p className="text-[10px] text-muted-foreground font-mono mt-0.5">+{seen ? Math.floor(level.xp * 0.4) : level.xp} XP</p>
+                                  <div className="mt-2 flex items-center justify-center h-4">
+                                    {loadingVideo
+                                      ? <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                                      : <Play className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    }
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                          {watched === 3 && !isComplete && (
+                            <div className="mt-3 p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs text-primary flex items-center gap-2">
+                              <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                              Â¡Has visto todos los niveles! El mÃ³dulo se completarÃ¡ automÃ¡ticamente.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </main>
+
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
