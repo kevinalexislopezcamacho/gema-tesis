@@ -26,17 +26,17 @@ const MIN_WATCH_RATIO = 0.85
 
 const TOPICS = [
   { id: "datos",               name: "Tipos de Datos",      icon: "{ }",  description: "Variables, constantes y tipos primitivos" },
-  { id: "operaciones-logicas", name: "Operaciones LÃ³gicas", icon: "&&",   description: "AND, OR, NOT y expresiones booleanas" },
+  { id: "operaciones-logicas", name: "Operaciones Lógicas", icon: "&&",   description: "AND, OR, NOT y expresiones booleanas" },
   { id: "filtros",             name: "Filtros",             icon: "?:",   description: "Filtrado de datos y validaciones" },
   { id: "condicionales",       name: "Condicionales",       icon: "if",   description: "If, else, switch y toma de decisiones" },
   { id: "bucles",              name: "Bucles",              icon: "for",  description: "For, while, do-while e iteraciones" },
-  { id: "funciones",           name: "Funciones",           icon: "fn()", description: "DeclaraciÃ³n, parÃ¡metros y retorno" },
-  { id: "arreglos",            name: "Arreglos",            icon: "[ ]",  description: "Arrays unidimensionales y mÃ©todos" },
+  { id: "funciones",           name: "Funciones",           icon: "fn()", description: "Declaración, parámetros y retorno" },
+  { id: "arreglos",            name: "Arreglos",            icon: "[ ]",  description: "Arrays unidimensionales y métodos" },
   { id: "matrices",            name: "Matrices",            icon: "[[]]", description: "Arrays bidimensionales y operaciones" },
 ]
 
 const DIFFICULTY_LEVELS = [
-  { id: "fÃ¡cil",    label: "FÃ¡cil",    color: "bg-green-500",  border: "border-green-500/50",  text: "text-green-400",  xp: 50  },
+  { id: "fácil",    label: "Fácil",    color: "bg-green-500",  border: "border-green-500/50",  text: "text-green-400",  xp: 50  },
   { id: "medio",    label: "Medio",    color: "bg-yellow-500", border: "border-yellow-500/50", text: "text-yellow-400", xp: 100 },
   { id: "avanzado", label: "Avanzado", color: "bg-red-500",    border: "border-red-500/50",    text: "text-red-400",    xp: 200 },
 ]
@@ -61,16 +61,16 @@ interface StreakPopup {
 
 function streakMessage(popup: StreakPopup): { title: string; sub: string; emoji: string } {
   if (popup.wasReset) {
-    return { emoji: "ðŸ’ª", title: "Â¡Nuevo inicio!", sub: "Tu racha se reiniciÃ³ â€” vuelves a empezar. Â¡No te rindas!" }
+    return { emoji: "💪", title: "¡Nuevo inicio!", sub: "Tu racha se reinició — vuelves a empezar. ¡No te rindas!" }
   }
   const n = popup.streak
-  if (n >= 30) return { emoji: "ðŸ‘‘", title: `Â¡${n} dÃ­as de racha!`, sub: "Eres una leyenda pura. Nada te detiene." }
-  if (n >= 14) return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as seguidos!`, sub: "Dos semanas ininterrumpidas. Â¡Eres imparable!" }
-  if (n >= 7)  return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as de racha!`, sub: "Â¡Una semana completa! Sigue construyendo el hÃ¡bito." }
-  if (n >= 5)  return { emoji: "ðŸ”¥", title: `Â¡${n} dÃ­as seguidos!`, sub: `Llevas ${n} dÃ­as aprendiendo. Â¡Vas muy bien!` }
-  if (n >= 3)  return { emoji: "ðŸ”¥", title: `Â¡Racha de ${n} dÃ­as!`, sub: "La constancia es la clave del aprendizaje." }
-  if (n === 2) return { emoji: "ðŸ”¥", title: "Â¡2 dÃ­as seguidos!", sub: "Buen comienzo â€” Â¡mantÃ©n el ritmo!" }
-  return       { emoji: "ðŸš€", title: "Â¡Bienvenido de vuelta!", sub: "Empieza tu racha de hoy y aprende algo nuevo." }
+  if (n >= 30) return { emoji: "👑", title: `¡${n} días de racha!`, sub: "Eres una leyenda pura. Nada te detiene." }
+  if (n >= 14) return { emoji: "🔥", title: `¡${n} días seguidos!`, sub: "Dos semanas ininterrumpidas. ¡Eres imparable!" }
+  if (n >= 7)  return { emoji: "🔥", title: `¡${n} días de racha!`, sub: "¡Una semana completa! Sigue construyendo el hábito." }
+  if (n >= 5)  return { emoji: "🔥", title: `¡${n} días seguidos!`, sub: `Llevas ${n} días aprendiendo. ¡Vas muy bien!` }
+  if (n >= 3)  return { emoji: "🔥", title: `¡Racha de ${n} días!`, sub: "La constancia es la clave del aprendizaje." }
+  if (n === 2) return { emoji: "🔥", title: "¡2 días seguidos!", sub: "Buen comienzo — ¡mantén el ritmo!" }
+  return       { emoji: "🚀", title: "¡Bienvenido de vuelta!", sub: "Empieza tu racha de hoy y aprende algo nuevo." }
 }
 
 export default function StudentDashboard() {
@@ -128,8 +128,8 @@ export default function StudentDashboard() {
   // â”€â”€ Daily login streak check (once per calendar day, not once per tab) â”€â”€
   useEffect(() => {
     if (!user || !token) return
-    // Guarda la fecha de hoy en vez de un flag fijo â€” asÃ­ si vuelves al dÃ­a
-    // siguiente en la misma pestaÃ±a (sin cerrarla), el check se vuelve a disparar.
+    // Guarda la fecha de hoy en vez de un flag fijo — así si vuelves al día
+    // siguiente en la misma pestaña (sin cerrarla), el check se vuelve a disparar.
     const today   = new Date().toISOString().slice(0, 10)
     const seenKey = `streak-checked-${user.id}`
     if (sessionStorage.getItem(seenKey) === today) return
@@ -250,7 +250,7 @@ export default function StudentDashboard() {
         })
         found
           ? setCurrentVideo(found)
-          : setVideoError(`AÃºn no hay un video de "${topic.name}" en nivel ${nivel}. El docente lo generarÃ¡ pronto.`)
+          : setVideoError(`Aún no hay un video de "${topic.name}" en nivel ${nivel}. El docente lo generará pronto.`)
       }
     } catch {
       setVideoError("No se pudo conectar con el servidor.")
@@ -291,7 +291,7 @@ export default function StudentDashboard() {
 
     if (watchedPct < MIN_WATCH_RATIO * 100) {
       setWatchWarning(
-        `Solo viste el ${watchedPct}% del video. Necesitas ver al menos el ${MIN_WATCH_RATIO * 100}% para ganar XP. Â¡No hagas trampa! ðŸ˜…`
+        `Solo viste el ${watchedPct}% del video. Necesitas ver al menos el ${MIN_WATCH_RATIO * 100}% para ganar XP. ¡No hagas trampa! 😅`
       )
       return
     }
@@ -315,7 +315,7 @@ export default function StudentDashboard() {
 
     // Show module completion notification
     if (result.topicCompleted) {
-      const topicName = TOPICS.find(t => t.id === currentTopicId)?.name ?? "mÃ³dulo"
+      const topicName = TOPICS.find(t => t.id === currentTopicId)?.name ?? "módulo"
       setTopicCompletedName(topicName)
       setTimeout(() => setTopicCompletedName(null), 6000)
     }
@@ -402,7 +402,7 @@ export default function StudentDashboard() {
           <div>
             <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
               <span className="font-mono">{progress.totalXP % 500} XP</span>
-              <span>/ 500 prÃ³x. nivel</span>
+              <span>/ 500 próx. nivel</span>
             </div>
             <div className="h-1.5 bg-secondary/80 rounded-full overflow-hidden">
               <div
@@ -430,7 +430,7 @@ export default function StudentDashboard() {
               <p className="text-sm">
                 <span className="text-muted-foreground">Hola, </span>
                 <span className="font-semibold">{user.name.split(" ")[0]}</span>
-                <span className="ml-1">ðŸ‘‹</span>
+                <span className="ml-1">👋</span>
               </p>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20">
               <Flame className="w-3.5 h-3.5 text-orange-400" />
               <span className="text-sm font-bold text-orange-400 font-mono">{progress.streak}</span>
-              <span className="text-xs text-orange-400/70 hidden sm:inline">dÃ­as</span>
+              <span className="text-xs text-orange-400/70 hidden sm:inline">días</span>
             </div>
             <Link href="/dashboard/student/achievements">
               <button className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors">
@@ -468,7 +468,7 @@ export default function StudentDashboard() {
                     {!streakPopup.wasReset && (
                       <div className="mt-2 flex items-center gap-1">
                         {Array.from({ length: Math.min(streakPopup.streak, 7) }).map((_, i) => (
-                          <div key={i} className="w-5 h-5 rounded-full bg-orange-500/30 flex items-center justify-center text-[10px]">ðŸ”¥</div>
+                          <div key={i} className="w-5 h-5 rounded-full bg-orange-500/30 flex items-center justify-center text-[10px]">🔥</div>
                         ))}
                         {streakPopup.streak > 7 && <span className="text-xs text-orange-400 font-medium ml-0.5">+{streakPopup.streak - 7}</span>}
                       </div>
@@ -490,7 +490,7 @@ export default function StudentDashboard() {
                 <Zap className="w-4 h-4 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-sm">+{xpNotif.xp} XP</p>
-                  <p className="text-xs opacity-70">{xpNotif.isFirstWatch ? "Â¡Primera vez!" : "Re-vista (-60%)"}</p>
+                  <p className="text-xs opacity-70">{xpNotif.isFirstWatch ? "¡Primera vez!" : "Re-vista (-60%)"}</p>
                 </div>
               </div>
             </div>
@@ -501,8 +501,8 @@ export default function StudentDashboard() {
               <div className="bg-gradient-to-r from-primary to-accent text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3">
                 <PartyPopper className="w-5 h-5 flex-shrink-0" />
                 <div>
-                  <p className="font-bold text-sm">Â¡MÃ³dulo completado!</p>
-                  <p className="text-xs opacity-90">{topicCompletedName} â€” 3 niveles vistos ðŸš€</p>
+                  <p className="font-bold text-sm">¡Módulo completado!</p>
+                  <p className="text-xs opacity-90">{topicCompletedName} — 3 niveles vistos 🚀</p>
                 </div>
               </div>
             </div>
@@ -520,7 +520,7 @@ export default function StudentDashboard() {
                     </h2>
                     {currentVideo && (
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {currentVideo.subtema} Â· {currentVideo.duracionEstimada} Â· {currentVideo.slides} slides
+                        {currentVideo.subtema} · {currentVideo.duracionEstimada} · {currentVideo.slides} slides
                       </p>
                     )}
                   </div>
@@ -579,7 +579,7 @@ export default function StudentDashboard() {
                           className="w-full rounded-xl bg-black"
                           onTimeUpdate={handleTimeUpdate}
                           onEnded={handleVideoEnded}
-                          onError={() => setVideoError("No se pudo cargar el video. Verifica que el servidor Python estÃ© activo.")}
+                          onError={() => setVideoError("No se pudo cargar el video. Verifica que el servidor Python esté activo.")}
                         />
                         <button
                           onClick={toggleFullscreen}
@@ -616,7 +616,7 @@ export default function StudentDashboard() {
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               {[
                 { icon: Zap,           value: progress.totalXP,         label: "XP TOTAL",      border: "border-l-primary",    bg: "bg-primary/5",    text: "text-primary"    },
-                { icon: Trophy,        value: `Nv.Â ${progress.level}`, label: "NIVEL",      border: "border-l-accent",     bg: "bg-accent/5",     text: "text-accent"     },
+                { icon: Trophy,        value: progress.level,            label: "NIVEL",      border: "border-l-accent",     bg: "bg-accent/5",     text: "text-accent"     },
                 { icon: Video,         value: progress.videosWatched,   label: "VIDEOS VISTOS", border: "border-l-blue-400",   bg: "bg-blue-500/5",   text: "text-blue-400"   },
                 { icon: MessageSquare, value: progress.chatbotSessions, label: "SESIONES CHAT", border: "border-l-violet-400", bg: "bg-violet-500/5", text: "text-violet-400" },
               ].map((s, i) => (
@@ -637,7 +637,7 @@ export default function StudentDashboard() {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="font-semibold text-sm">Progreso del curso</h2>
-                  <p className="text-xs text-muted-foreground">{completedCount} de {TOPICS.length} mÃ³dulos completados</p>
+                  <p className="text-xs text-muted-foreground">{completedCount} de {TOPICS.length} módulos completados</p>
                 </div>
                 <span className="text-2xl font-bold font-mono text-primary">{progressPct.toFixed(0)}%</span>
               </div>
@@ -679,7 +679,7 @@ export default function StudentDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="font-semibold">Camino de aprendizaje</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Completa los 3 niveles de cada mÃ³dulo para desbloquear el siguiente</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Completa los 3 niveles de cada módulo para desbloquear el siguiente</p>
                 </div>
                 <span className="text-xs text-muted-foreground font-mono">{completedCount}/{TOPICS.length}</span>
               </div>
@@ -782,7 +782,7 @@ export default function StudentDashboard() {
                           {watched === 3 && !isComplete && (
                             <div className="mt-3 p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs text-primary flex items-center gap-2">
                               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                              Â¡Has visto todos los niveles! El mÃ³dulo se completarÃ¡ automÃ¡ticamente.
+                              ¡Has visto todos los niveles! El módulo se completará automáticamente.
                             </div>
                           )}
                         </div>

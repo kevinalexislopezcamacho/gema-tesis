@@ -30,7 +30,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
 const TOPICS = [
   { id: "datos",               name: "Tipos de Datos"       },
-  { id: "operaciones-logicas", name: "Operaciones LÃ³gicas"  },
+  { id: "operaciones-logicas", name: "Operaciones Lógicas"  },
   { id: "filtros",             name: "Filtros"              },
   { id: "condicionales",       name: "Condicionales"        },
   { id: "bucles",              name: "Bucles"               },
@@ -40,7 +40,7 @@ const TOPICS = [
 ]
 
 const NIVELES = [
-  { id: "fÃ¡cil",    label: "FÃ¡cil",    color: "bg-green-500/20 text-green-400 border-green-500/30"   },
+  { id: "fácil",    label: "Fácil",    color: "bg-green-500/20 text-green-400 border-green-500/30"   },
   { id: "medio",    label: "Medio",    color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
   { id: "avanzado", label: "Avanzado", color: "bg-red-500/20 text-red-400 border-red-500/30"         },
 ]
@@ -138,13 +138,13 @@ export default function AdminDashboard() {
         setGenError(d.error || "Error al generar el video")
       }
     } catch {
-      setGenError("No se pudo conectar. Â¿EstÃ¡ corriendo el servicio Python?")
+      setGenError("No se pudo conectar. ¿Está corriendo el servicio Python?")
     }
     setGenerating(false)
   }
 
   const handleDeleteVideo = async (id: string) => {
-    if (!confirm("Â¿Eliminar este video?")) return
+    if (!confirm("¿Eliminar este video?")) return
     await fetch(`${API}/videos/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
     if (playingId === id) setPlayingId(null)
     fetchVideos()
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
         setEditError(d.error || "Error al guardar")
       }
     } catch {
-      setEditError("Error de conexiÃ³n")
+      setEditError("Error de conexión")
     }
     setEditSaving(false)
   }
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
             <TabsList className="bg-secondary/40 border border-border/30 p-1 rounded-xl">
               <TabsTrigger value="videos"    className="rounded-lg gap-2 text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm"><Film className="w-4 h-4" />Videos</TabsTrigger>
               <TabsTrigger value="students"  className="rounded-lg gap-2 text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm"><Users className="w-4 h-4" />Estudiantes</TabsTrigger>
-              <TabsTrigger value="analytics" className="rounded-lg gap-2 text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm"><BarChart3 className="w-4 h-4" />AnalÃ­ticas</TabsTrigger>
+              <TabsTrigger value="analytics" className="rounded-lg gap-2 text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm"><BarChart3 className="w-4 h-4" />Analíticas</TabsTrigger>
             </TabsList>
 
             {/* Videos */}
@@ -298,16 +298,16 @@ export default function AdminDashboard() {
                     </DialogHeader>
                     <div className="space-y-5 pt-2">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Tema del mÃ³dulo</label>
+                        <label className="text-sm font-medium">Tema del módulo</label>
                         <Select value={genTema} onValueChange={setGenTema}>
                           <SelectTrigger className="bg-secondary/50 border-border"><SelectValue placeholder="Selecciona el tema..." /></SelectTrigger>
                           <SelectContent>{TOPICS.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Subtema especÃ­fico</label>
+                        <label className="text-sm font-medium">Subtema específico</label>
                         <Input placeholder="Ej: if, else y elif en Python" value={genSubtema} onChange={e => setGenSubtema(e.target.value)} className="bg-secondary/50 border-border" disabled={generating} />
-                        <p className="text-xs text-muted-foreground">SÃ© especÃ­fico para mejores resultados</p>
+                        <p className="text-xs text-muted-foreground">Sé específico para mejores resultados</p>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Nivel de dificultad</label>
@@ -324,12 +324,12 @@ export default function AdminDashboard() {
                       {genSuccess && <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm">{genSuccess}</div>}
                       {!generating && !genSuccess && (
                         <div className="p-3 rounded-xl bg-secondary/40 border border-border/30 text-xs text-muted-foreground flex gap-2">
-                          <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-primary" />La generaciÃ³n tarda entre 1 y 3 minutos. No cierres esta ventana.
+                          <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-primary" />La generación tarda entre 1 y 3 minutos. No cierres esta ventana.
                         </div>
                       )}
                       {generating && (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-primary"><Loader2 className="w-4 h-4 animate-spin" />Generando guiÃ³n, slides y audio...</div>
+                          <div className="flex items-center gap-2 text-sm text-primary"><Loader2 className="w-4 h-4 animate-spin" />Generando guión, slides y audio...</div>
                           <Progress className="h-1 animate-pulse" />
                         </div>
                       )}
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
               {videos.length === 0 ? (
                 <div className="text-center py-20 border border-dashed border-border/40 rounded-2xl">
                   <Film className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                  <p className="text-sm text-muted-foreground">No hay videos generados aÃºn</p>
+                  <p className="text-sm text-muted-foreground">No hay videos generados aún</p>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -435,7 +435,7 @@ export default function AdminDashboard() {
                           <TableCell><Badge variant="outline" className="text-xs border-border/50">Nv. {s.progress?.level || 1}</Badge></TableCell>
                           <TableCell className="font-mono text-sm text-yellow-400">{(s.progress?.totalXP || 0).toLocaleString()}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{s.progress?.videosWatched || 0}</TableCell>
-                          <TableCell className="text-sm">ðŸ”¥ {s.progress?.streak || 0}</TableCell>
+                          <TableCell className="text-sm">🔥 {s.progress?.streak || 0}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 w-28">
                               <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -452,11 +452,11 @@ export default function AdminDashboard() {
               </div>
             </TabsContent>
 
-            {/* AnalÃ­ticas */}
+            {/* Analíticas */}
             <TabsContent value="analytics" className="mt-5">
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="rounded-2xl border border-border/40 bg-card/30 p-5">
-                  <h3 className="font-semibold text-sm mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Progreso por mÃ³dulo</h3>
+                  <h3 className="font-semibold text-sm mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Progreso por módulo</h3>
                   <div className="space-y-3">
                     {TOPICS.map(t => {
                       const count = students.filter(s => parseTopics(s.progress?.completedTopics).includes(t.id)).length
@@ -480,13 +480,13 @@ export default function AdminDashboard() {
                   <div className="space-y-3">
                     {[...students].sort((a, b) => (b.progress?.totalXP || 0) - (a.progress?.totalXP || 0)).slice(0, 5).map((s, i) => (
                       <div key={s.id} className="flex items-center gap-3">
-                        <span className="text-base w-5 flex-shrink-0">{["ðŸ¥‡","ðŸ¥ˆ","ðŸ¥‰","4ï¸âƒ£","5ï¸âƒ£"][i]}</span>
+                        <span className="text-base w-5 flex-shrink-0">{["🥇","🥈","🥉","4️⃣","5️⃣"][i]}</span>
                         <Avatar className="w-7 h-7 flex-shrink-0"><AvatarFallback className="bg-primary/20 text-primary text-xs">{s.name.charAt(0)}</AvatarFallback></Avatar>
                         <span className="flex-1 text-sm truncate">{s.name}</span>
                         <span className="text-sm font-mono text-yellow-400 flex-shrink-0">{(s.progress?.totalXP || 0).toLocaleString()} XP</span>
                       </div>
                     ))}
-                    {students.length === 0 && <p className="text-sm text-muted-foreground">No hay datos aÃºn</p>}
+                    {students.length === 0 && <p className="text-sm text-muted-foreground">No hay datos aún</p>}
                   </div>
                 </div>
               </div>
@@ -495,7 +495,7 @@ export default function AdminDashboard() {
         </main>
       </div>
 
-      {/* â”€â”€ Modal ediciÃ³n de video â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â”€â”€ Modal edición de video â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {editVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-card border border-border/60 rounded-2xl w-full max-w-md p-6 shadow-2xl">
@@ -505,7 +505,7 @@ export default function AdminDashboard() {
             </div>
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">TÃ­tulo</label>
+                <label className="text-sm font-medium">Título</label>
                 <Input value={editTitulo} onChange={e => setEditTitulo(e.target.value)} className="bg-secondary/50 border-border/50" />
               </div>
               <div className="space-y-1.5">
@@ -557,7 +557,7 @@ export default function AdminDashboard() {
                 {[
                   { label: "XP Total",       value: (profileStudent.progress?.totalXP || 0).toLocaleString(), color: "text-yellow-400" },
                   { label: "Videos vistos",  value: profileStudent.progress?.videosWatched || 0,              color: "text-blue-400"   },
-                  { label: "Racha",          value: `${profileStudent.progress?.streak || 0} dÃ­as`,           color: "text-orange-400" },
+                  { label: "Racha",          value: `${profileStudent.progress?.streak || 0} días`,           color: "text-orange-400" },
                   { label: "Sesiones chat",  value: profileStudent.progress?.chatbotSessions || 0,            color: "text-violet-400" },
                 ].map((s, i) => (
                   <div key={i} className="bg-secondary/30 rounded-xl p-3 border border-border/30">
@@ -567,7 +567,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold mb-3">Progreso por mÃ³dulo</p>
+                <p className="text-sm font-semibold mb-3">Progreso por módulo</p>
                 <div className="space-y-2">
                   {TOPICS.map(t => {
                     const done = parseTopics(profileStudent.progress?.completedTopics).includes(t.id)
