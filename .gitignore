@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables (contain secrets)
+.env
+.env.local
+.env.production
+video_service/.env
+
+# Build output
+.next/
+dist/
+build/
+out/
+
+# Database
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Generated videos / media
+video_service/output/
+video_service/temp/
+**/*.mp4
+**/*.mp3
+**/*.wav
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo

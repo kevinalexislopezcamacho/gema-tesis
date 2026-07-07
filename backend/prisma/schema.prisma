@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      String     @default("student") // "student" or "admin"
+  avatar    String?
+
+  progress         StudentProgress?
+  chatMessages     ChatMessage[]
+  videoWatches     VideoWatch[]
+  questionAttempts QuestionAttempt[]
+  topicSkills      StudentTopicSkill[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model VideoWatch {
+  id         String   @id @default(cuid())
+  userId     String
+  videoId    String
+  topicId    String   @default("")  // e.g. "datos", "condicionales"
+  nivel      String   @default("")  // "fácil" | "medio" | "avanzado"
+  watchCount Int      @default(1)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, videoId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model StudentProgress {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  completedTopics   String   @default("") // JSON stringified array
+  currentTopic      String?
+  totalXP           Int      @default(0)
+  level             Int      @default(1)
+  streak            Int      @default(0)
+  videosWatched     Int      @default(0)
+  chatbotSessions   Int      @default(0)
+  learningMode      String   @default("video") // "video" or "chatbot"
+  
+  lastActivityAt    DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Topic {
+  id           String   @id @default(cuid())
+  topicId      String   @unique // "datos", "operaciones-logicas", etc
+  name         String
+  icon         String
+  description  String
+  videos       Int      @default(3)
+  difficulty   String   @default("easy") // "easy", "medium", "advanced"
+  xpReward     Int      @default(100)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Video {
+  id               String   @id @default(cuid())
+  titulo           String
+  tema             String
+  subtema          String
+  nivel            String   @default("medio")
+  duracionEstimada String   @default("2-4 minutos")
+  filename         String
+  videoUrl         String
+  slides           Int      @default(5)
+  status           String   @default("ready") // "processing" | "ready" | "error"
+  createdBy        String   // user id del docente
+
+  questions        Question[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ── Preguntas adaptativas (Elo) ────────────────────────────────────────────
+
+model Question {
+  id                String   @id @default(cuid())
+  videoId           String
+  video             Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  topicId           String
+  nivel             String
+  slideIndex        Int
+  triggerTimeSec    Float
+  tipo              String   // "seleccion_multiple" | "codigo" | "abierta"
+  enunciado         String
+  opciones          String?  // JSON stringified array (solo seleccion_multiple)
+  respuestaCorrecta String?  // index / salida_esperada / respuesta_modelo según tipo
+  codigoInicial     String?  // solo tipo "codigo"
+  explicacion       String
+  dificultadElo     Float    @default(1200)
+  vecesRespondida   Int      @default(0)
+  vecesCorrecta     Int      @default(0)
+
+  attempts          QuestionAttempt[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model StudentTopicSkill {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId   String
+  elo       Float    @default(1200)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, topicId])
+}
+
+model QuestionAttempt {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId           String
+  question             Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  respuestaDada        String
+  correcto             Boolean
+  eloEstudianteAntes   Float
+  eloEstudianteDespues Float
+  eloPreguntaAntes     Float
+  eloPreguntaDespues   Float
+
+  createdAt            DateTime @default(now())
+}
