@@ -1,7 +1,7 @@
 {
   "name": "codepath-backend",
   "version": "1.0.0",
-  "description": "Backend para CodePath - Plataforma educativa de IA",
+  "description": "Backend para GEMA - Plataforma educativa de IA",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -23,7 +23,6 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.5.0",
     "openai": "^6.39.1"
   },
   "devDependencies": {
