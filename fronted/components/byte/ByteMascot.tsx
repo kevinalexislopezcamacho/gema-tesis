@@ -98,11 +98,20 @@ const EXPR: Record<ByteExpression, ExpressionConfig> = {
   },
 }
 
+export type ByteColor  = "azul" | "violeta" | "esmeralda" | "coral" | "dorado" | "rosa" | "cian"
+export type ByteOutfit = "ninguno" | "corbata" | "gorro" | "lentes" | "audifonos" | "corona"
+
+const HUE_ROTATE: Record<ByteColor, number> = {
+  azul: 0, violeta: 62, esmeralda: -60, coral: 155, dorado: 198, rosa: 123, cian: 338,
+}
+
 interface Props {
   expression?: ByteExpression
   size?: number    // width in px, height is auto (aspect ratio 680:540)
   className?: string
   animate?: boolean  // gentle float animation
+  color?: ByteColor      // Tienda "Color" customization (hue-rotate filter)
+  outfit?: ByteOutfit    // Tienda "Ropa" customization (accessory overlay)
 }
 
 export function ByteMascot({
@@ -110,10 +119,13 @@ export function ByteMascot({
   size = 200,
   className = "",
   animate = false,
+  color = "azul",
+  outfit = "ninguno",
 }: Props) {
   const e   = EXPR[expression]
   const h   = Math.round(size * (540 / 680))
   const sc  = e.irisScale ?? 1
+  const hue = HUE_ROTATE[color]
 
   // Iris positions (centers: left=290,236 right=390,236)
   const liX = 290 + e.irisX
@@ -123,7 +135,7 @@ export function ByteMascot({
 
   return (
     <div
-      style={{ width: size, height: h, flexShrink: 0 }}
+      style={{ width: size, height: h, flexShrink: 0, filter: hue !== 0 ? `hue-rotate(${hue}deg)` : undefined }}
       className={`${className} ${animate ? "animate-bounce" : ""}`}
     >
       <svg width={size} height={h} viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg">
@@ -165,6 +177,17 @@ export function ByteMascot({
         <circle cx="499" cy="210" r="6" fill="#4F9EFF" opacity="0.4" />
         <circle cx="499" cy="224" r="4" fill="#A371F7" />
 
+        {/* Outfit: headphones (band over the head, cups on the ears) */}
+        {outfit === "audifonos" && (
+          <>
+            <path d="M181 196 Q340 116 499 196" stroke="#1A1A2E" strokeWidth="10" fill="none" strokeLinecap="round" />
+            <circle cx="181" cy="216" r="24" fill="#1A1A2E" />
+            <circle cx="181" cy="216" r="14" fill="#4F9EFF" />
+            <circle cx="499" cy="216" r="24" fill="#1A1A2E" />
+            <circle cx="499" cy="216" r="14" fill="#4F9EFF" />
+          </>
+        )}
+
         {/* Eye sockets */}
         <ellipse cx="290" cy="234" rx="46" ry="44" fill="#fff" />
         <ellipse cx="290" cy="234" rx="42" ry="40" fill="#E3F2FD" />
@@ -201,6 +224,15 @@ export function ByteMascot({
           </>
         )}
 
+        {/* Outfit: sunglasses (over eye sockets) */}
+        {outfit === "lentes" && (
+          <>
+            <rect x="256" y="216" width="72" height="36" rx="16" fill="#1A1A2E" />
+            <rect x="352" y="216" width="72" height="36" rx="16" fill="#1A1A2E" />
+            <rect x="328" y="228" width="24" height="8" rx="4" fill="#1A1A2E" />
+          </>
+        )}
+
         {/* Eyebrows */}
         <path d={e.leftBrow}  stroke="#1565C0" strokeWidth="5" fill="none" strokeLinecap="round" />
         <path d={e.rightBrow} stroke="#1565C0" strokeWidth="5" fill="none" strokeLinecap="round" />
@@ -226,6 +258,15 @@ export function ByteMascot({
         {/* Neck */}
         <rect x="308" y="338" width="64" height="26" rx="12" fill="#1565C0" />
         <rect x="316" y="342" width="48" height="18" rx="9" fill="#1E88E5" />
+
+        {/* Outfit: bow tie (at the neck) */}
+        {outfit === "corbata" && (
+          <>
+            <path d="M280 349 L328 322 L328 378 Z" fill="oklch(0.6 0.19 300)" stroke="#1565C0" strokeWidth="2" />
+            <path d="M400 349 L352 322 L352 378 Z" fill="oklch(0.6 0.19 300)" stroke="#1565C0" strokeWidth="2" />
+            <rect x="325" y="335" width="30" height="28" rx="6" fill="oklch(0.46 0.19 265)" stroke="#1565C0" strokeWidth="2" />
+          </>
+        )}
 
         {/* Body shadow */}
         <rect x="212" y="368" width="256" height="106" rx="32" fill="#000" opacity="0.07" />
@@ -281,6 +322,25 @@ export function ByteMascot({
         <ellipse cx="400" cy="492" rx="30" ry="12" fill="#1E88E5" />
         <ellipse cx="270" cy="494" rx="10" ry="5" fill="#fff" opacity="0.25" />
         <ellipse cx="410" cy="494" rx="10" ry="5" fill="#fff" opacity="0.25" />
+
+        {/* Outfit: party hat (above the antenna, on top of everything) */}
+        {outfit === "gorro" && (
+          <>
+            <path d="M300 148 L380 148 L340 66 Z" fill="oklch(0.6 0.19 300)" />
+            <path d="M300 148 L380 148 L340 66 Z" fill="none" stroke="#1565C0" strokeWidth="3" />
+            <circle cx="340" cy="66" r="9" fill="oklch(0.74 0.15 70)" />
+          </>
+        )}
+
+        {/* Outfit: crown (above the head, on top of everything) */}
+        {outfit === "corona" && (
+          <>
+            <path d="M296 148 L296 100 L322 124 L340 84 L358 124 L384 100 L384 148 Z" fill="oklch(0.82 0.16 85)" stroke="#1565C0" strokeWidth="3" strokeLinejoin="round" />
+            <circle cx="340" cy="84" r="6" fill="oklch(0.6 0.19 25)" />
+            <circle cx="296" cy="100" r="5" fill="oklch(0.6 0.19 260)" />
+            <circle cx="384" cy="100" r="5" fill="oklch(0.6 0.19 260)" />
+          </>
+        )}
       </svg>
     </div>
   )

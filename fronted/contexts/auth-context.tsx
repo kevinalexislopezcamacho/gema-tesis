@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 
 export type UserRole = "student" | "admin"
 
@@ -24,6 +24,16 @@ export interface StudentProgress {
   videosWatched: number
   chatbotSessions: number
   learningMode: "video" | "chatbot"
+  coins: number
+  byteName: string
+  byteColor: string
+  byteOutfit: string
+  byteStyle: string
+  ownedColors: string[]
+  ownedOutfits: string[]
+  ownedStyles: string[]
+  claimedAchievements: string[]
+  courseCompletedAt: string | null
 }
 
 interface AuthContextType {
@@ -35,10 +45,15 @@ interface AuthContextType {
   loginAsAdmin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateProgress: (topicId: string, difficulty?: string) => Promise<void>
-  recordVideoWatch: (topicId: string, difficulty: string, videoId: string, watchedRatio: number) => Promise<{ xp: number; isFirstWatch: boolean; topicCompleted: boolean; watchedLevels: string[] } | null>
+  recordVideoWatch: (topicId: string, difficulty: string, videoId: string, watchedRatio: number) => Promise<{ xp: number; coinsGained: number; isFirstWatch: boolean; topicCompleted: boolean; watchedLevels: string[] } | null>
+  getTopicExam: (topicId: string) => Promise<{ id: string; tipo: string; enunciado: string; opciones: string[] | null; codigoInicial: string | null; lenguaje: string }[] | null>
+  submitTopicExam: (topicId: string, respuestas: { questionId: string; respuesta: string }[]) => Promise<{ score: number; passed: boolean; correctCount: number; total: number; coinsGained: number; courseCompleted: boolean; results: { questionId: string; correcto: boolean; explicacion: string; respuestaCorrecta: string | null }[] } | null>
   setLearningMode: (mode: "video" | "chatbot") => void
   refreshProgress: () => Promise<void>
   checkDailyLogin: () => Promise<{ changed: boolean; streak: number; previousStreak: number; wasReset: boolean; daysDiff: number } | null>
+  purchaseByteItem: (category: "color" | "outfit" | "style", itemId: string) => Promise<{ success: boolean; error?: string }>
+  updateByteName: (name: string) => Promise<void>
+  claimAchievement: (achievementId: string) => Promise<{ coinsAwarded: number } | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -135,7 +150,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           streak: 0,
           videosWatched: 0,
           chatbotSessions: 0,
-          learningMode: "video"
+          learningMode: "video",
+          coins: 0,
+          byteName: "Byte",
+          byteColor: "azul",
+          byteOutfit: "ninguno",
+          byteStyle: "feliz",
+          ownedColors: ["azul"],
+          ownedOutfits: ["ninguno"],
+          ownedStyles: ["feliz"],
+          claimedAchievements: [],
+          courseCompletedAt: null
         }
       }
       setUser(userData)
@@ -224,7 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     difficulty: string,
     videoId: string,
     watchedRatio: number
-  ): Promise<{ xp: number; isFirstWatch: boolean; topicCompleted: boolean; watchedLevels: string[] } | null> => {
+  ): Promise<{ xp: number; coinsGained: number; isFirstWatch: boolean; topicCompleted: boolean; watchedLevels: string[] } | null> => {
     if (!user || user.role !== "student" || !token) return null
     try {
       const r = await fetch(`${API_URL}/students/${user.id}/videos/${videoId}/watch`, {
@@ -239,10 +264,119 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("codepath-user", JSON.stringify(updatedUser))
         return {
           xp:             data.data.xpGained,
+          coinsGained:    data.data.coinsGained ?? 0,
           isFirstWatch:   data.data.isFirstWatch,
           topicCompleted: data.data.topicCompleted ?? false,
           watchedLevels:  data.data.watchedLevels  ?? [],
         }
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  // Examen final del módulo: 10 preguntas ya verificadas del tema (mezcla de
+  // los 3 niveles), aprobar con >=80% es lo que de verdad marca el tema como
+  // completado y desbloquea el siguiente.
+  //
+  // Memoizado con useCallback: TopicExamOverlay usa esta función como
+  // dependencia de su useEffect de carga inicial. Sin memoizar, cada
+  // re-render de AuthProvider (por cualquier cambio de estado, ni siquiera
+  // relacionado al examen) generaba una referencia nueva de la función, lo
+  // que disparaba el efecto de nuevo a mitad de un intento — pidiendo una
+  // muestra aleatoria FRESCA de preguntas y reemplazando en silencio las que
+  // el estudiante ya venía respondiendo. Resultado: la retroalimentación
+  // final mostraba preguntas que nunca se respondieron y explicaciones que
+  // no correspondían a la pregunta mostrada.
+  const getTopicExam = useCallback(async (topicId: string) => {
+    if (!user || user.role !== "student" || !token) return null
+    try {
+      const r = await fetch(`${API_URL}/topics/${topicId}/exam`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await r.json()
+      return data.success ? data.data : null
+    } catch {
+      return null
+    }
+  }, [user, token])
+
+  const submitTopicExam = useCallback(async (topicId: string, respuestas: { questionId: string; respuesta: string }[]) => {
+    if (!user || user.role !== "student" || !token) return null
+    try {
+      const r = await fetch(`${API_URL}/topics/${topicId}/exam/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ respuestas }),
+      })
+      const data = await r.json()
+      if (data.success) {
+        const updatedUser = { ...user, progress: data.data.progress }
+        setUser(updatedUser)
+        localStorage.setItem("codepath-user", JSON.stringify(updatedUser))
+        return data.data
+      }
+      return null
+    } catch {
+      return null
+    }
+  }, [user, token])
+
+  const purchaseByteItem = async (
+    category: "color" | "outfit" | "style",
+    itemId: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!user || user.role !== "student" || !token) return { success: false, error: "No autenticado" }
+    try {
+      const r = await fetch(`${API_URL}/students/${user.id}/byte/purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ category, itemId }),
+      })
+      const data = await r.json()
+      if (data.success) {
+        const updatedUser = { ...user, progress: data.data }
+        setUser(updatedUser)
+        localStorage.setItem("codepath-user", JSON.stringify(updatedUser))
+        return { success: true }
+      }
+      return { success: false, error: data.error || "No se pudo completar la compra" }
+    } catch {
+      return { success: false, error: "Error de conexión con el servidor" }
+    }
+  }
+
+  const updateByteName = async (name: string): Promise<void> => {
+    if (!user || user.role !== "student" || !token) return
+    try {
+      const r = await fetch(`${API_URL}/students/${user.id}/byte`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ byteName: name }),
+      })
+      const data = await r.json()
+      if (data.success) {
+        const updatedUser = { ...user, progress: data.data }
+        setUser(updatedUser)
+        localStorage.setItem("codepath-user", JSON.stringify(updatedUser))
+      }
+    } catch {}
+  }
+
+  const claimAchievement = async (achievementId: string): Promise<{ coinsAwarded: number } | null> => {
+    if (!user || user.role !== "student" || !token) return null
+    try {
+      const r = await fetch(`${API_URL}/students/${user.id}/achievements/${achievementId}/claim`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await r.json()
+      if (data.success) {
+        const updatedUser = { ...user, progress: data.data.progress }
+        setUser(updatedUser)
+        localStorage.setItem("codepath-user", JSON.stringify(updatedUser))
+        return { coinsAwarded: data.data.coinsAwarded }
       }
       return null
     } catch {
@@ -299,9 +433,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       updateProgress,
       recordVideoWatch,
+      getTopicExam,
+      submitTopicExam,
       setLearningMode,
       refreshProgress,
       checkDailyLogin,
+      purchaseByteItem,
+      updateByteName,
+      claimAchievement,
     }}>
       {children}
     </AuthContext.Provider>

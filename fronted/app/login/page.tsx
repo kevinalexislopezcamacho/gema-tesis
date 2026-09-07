@@ -11,14 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { 
-  Terminal, 
-  GraduationCap, 
-  Shield, 
+  GraduationCap,
+  Shield,
   ArrowLeft,
   Eye,
   EyeOff,
   Sparkles,
-  Code2
 } from "lucide-react"
 
 export default function LoginPage() {
@@ -90,15 +88,9 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="text-center mb-8">
               <Link href="/" className="inline-flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                    <Terminal className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
-                </div>
+                <img src="/logo-icon.png" alt="GEMA" className="w-12 h-12 object-contain" />
                 <div className="text-left">
-                  <span className="text-xl font-bold text-foreground">CodePath</span>
-                  <span className="text-xl font-bold text-primary">AI</span>
+                  <span className="text-xl font-bold text-foreground">GEMA</span>
                   <p className="text-xs text-muted-foreground">Micro-Learning Inteligente</p>
                 </div>
               </Link>
@@ -151,11 +143,11 @@ export default function LoginPage() {
                           />
                         </Field>
                         <Field>
-                          <FieldLabel>Contrasena</FieldLabel>
+                          <FieldLabel>Contraseña</FieldLabel>
                           <div className="relative">
                             <Input
                               type={showStudentPassword ? "text" : "password"}
-                              placeholder="Tu contrasena"
+                              placeholder="Tu contraseña"
                               value={studentPassword}
                               onChange={(e) => setStudentPassword(e.target.value)}
                               required
@@ -196,18 +188,6 @@ export default function LoginPage() {
                           Registrate aqui
                         </Link>
                       </div>
-
-                      {/* Demo credentials */}
-                      <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                        <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
-                          <Code2 className="w-4 h-4" />
-                          Credenciales de demo
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Email: cualquier email valido<br />
-                          Contrasena: <code className="px-1 py-0.5 rounded bg-secondary text-primary">demo123</code>
-                        </p>
-                      </div>
                     </form>
                   </TabsContent>
 
@@ -226,11 +206,11 @@ export default function LoginPage() {
                           />
                         </Field>
                         <Field>
-                          <FieldLabel>Contrasena</FieldLabel>
+                          <FieldLabel>Contraseña</FieldLabel>
                           <div className="relative">
                             <Input
                               type={showAdminPassword ? "text" : "password"}
-                              placeholder="Contrasena de administrador"
+                              placeholder="Contraseña de administrador"
                               value={adminPassword}
                               onChange={(e) => setAdminPassword(e.target.value)}
                               required
@@ -264,18 +244,6 @@ export default function LoginPage() {
                           </>
                         )}
                       </Button>
-
-                      {/* Demo credentials */}
-                      <div className="mt-6 p-4 rounded-lg bg-accent/5 border border-accent/20">
-                        <div className="flex items-center gap-2 text-accent text-sm font-medium mb-2">
-                          <Shield className="w-4 h-4" />
-                          Credenciales de admin demo
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Email: cualquier email valido<br />
-                          Contrasena: <code className="px-1 py-0.5 rounded bg-secondary text-accent">admin123</code>
-                        </p>
-                      </div>
                     </form>
                   </TabsContent>
                 </Tabs>

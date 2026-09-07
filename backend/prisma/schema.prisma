@@ -64,7 +64,23 @@ model StudentProgress {
   videosWatched     Int      @default(0)
   chatbotSessions   Int      @default(0)
   learningMode      String   @default("video") // "video" or "chatbot"
-  
+
+  // ── Byte Store ──────────────────────────────────────────────────────────
+  coins               Int    @default(0)
+  byteName            String @default("Byte")
+  byteColor           String @default("azul")
+  byteOutfit          String @default("ninguno")
+  byteStyle           String @default("feliz")
+  ownedColors         String @default("[\"azul\"]")    // JSON stringified array
+  ownedOutfits        String @default("[\"ninguno\"]") // JSON stringified array
+  ownedStyles         String @default("[\"feliz\"]")   // JSON stringified array
+  claimedAchievements String @default("[]")            // JSON stringified array
+
+  // Set once, the first time completedTopics covers every Topic that existed
+  // at that moment — never cleared afterwards, even if new topics are added
+  // later (a certificate already earned is never revoked).
+  courseCompletedAt DateTime?
+
   lastActivityAt    DateTime @default(now())
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -90,6 +106,7 @@ model Video {
   tema             String
   subtema          String
   nivel            String   @default("medio")
+  lenguaje         String   @default("python")
   duracionEstimada String   @default("2-4 minutos")
   filename         String
   videoUrl         String
@@ -114,10 +131,12 @@ model Question {
   slideIndex        Int
   triggerTimeSec    Float
   tipo              String   // "seleccion_multiple" | "codigo" | "abierta"
+  lenguaje          String   @default("python")
   enunciado         String
   opciones          String?  // JSON stringified array (solo seleccion_multiple)
   respuestaCorrecta String?  // index / salida_esperada / respuesta_modelo según tipo
   codigoInicial     String?  // solo tipo "codigo"
+  codigoSolucion    String?  // solución completa verificada — se calcula y cachea la primera vez que un estudiante falla 3 veces seguidas
   explicacion       String
   dificultadElo     Float    @default(1200)
   vecesRespondida   Int      @default(0)
@@ -135,6 +154,14 @@ model StudentTopicSkill {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   topicId   String
   elo       Float    @default(1200)
+
+  // Examen final del módulo: se habilita cuando el estudiante ya vio los 3
+  // niveles del tema. Aprobarlo (>=80%) es lo que de verdad marca el tema
+  // como completado (desbloquea el siguiente módulo) — ver los 3 videos ya
+  // no basta por sí solo.
+  examPassed     Boolean  @default(false)
+  examBestScore  Float?
+  examAttempts   Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

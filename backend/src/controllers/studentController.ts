@@ -1,6 +1,24 @@
 import { prisma } from '../lib/prisma'
 import { Response } from 'express'
+import bcrypt from 'bcryptjs'
 import { AuthRequest } from '../middleware/auth'
+import { catalogFor, StoreCategory } from '../constants/storeItems'
+import { ACHIEVEMENT_RULES, computeStats } from '../constants/achievements'
+import { passwordEsDebil } from './authController'
+
+// Every StudentProgress row stores a handful of columns as JSON-stringified
+// arrays (same pattern as the pre-existing `completedTopics`). This parses
+// all of them consistently so every endpoint below returns real arrays.
+export function serializeProgress(progress: any) {
+  return {
+    ...progress,
+    completedTopics: JSON.parse(progress.completedTopics || '[]'),
+    ownedColors: JSON.parse(progress.ownedColors || '["azul"]'),
+    ownedOutfits: JSON.parse(progress.ownedOutfits || '["ninguno"]'),
+    ownedStyles: JSON.parse(progress.ownedStyles || '["feliz"]'),
+    claimedAchievements: JSON.parse(progress.claimedAchievements || '[]'),
+  }
+}
 
 export const getStudentProgress = async (req: AuthRequest, res: Response) => {
   try {
@@ -19,10 +37,7 @@ export const getStudentProgress = async (req: AuthRequest, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...progress,
-        completedTopics: JSON.parse(progress.completedTopics)
-      }
+      data: serializeProgress(progress)
     })
   } catch (error) {
     console.error('Error al obtener progreso:', error)
@@ -107,10 +122,7 @@ export const updateStudentProgress = async (req: AuthRequest, res: Response) => 
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...progress,
-        completedTopics: JSON.parse(progress.completedTopics)
-      }
+      data: serializeProgress(progress)
     })
   } catch (error) {
     console.error('Error al actualizar progreso:', error)
@@ -199,10 +211,7 @@ export const completeTopicChallenge = async (req: AuthRequest, res: Response) =>
     return res.status(200).json({
       success: true,
       data: {
-        progress: {
-          ...progress,
-          completedTopics: JSON.parse(progress.completedTopics)
-        },
+        progress: serializeProgress(progress),
         xpGained: xpReward,
         newLevel
       }
@@ -250,6 +259,8 @@ export const watchVideo = async (req: AuthRequest, res: Response) => {
     const baseXP   = xpMap[nivel] ?? 50
     // First watch: full XP. Re-watch: 40% (rounded down, minimum 5 XP)
     const xpGained = isFirstWatch ? baseXP : Math.max(5, Math.floor(baseXP * 0.4))
+    // Coins: 10% of base XP, first watch only (fácil +5, medio +10, avanzado +20)
+    const coinsGained = isFirstWatch ? Math.round(baseXP / 10) : 0
 
     if (existingWatch) {
       await prisma.videoWatch.update({
@@ -290,9 +301,14 @@ export const watchVideo = async (req: AuthRequest, res: Response) => {
       streak:         newStreak,
       lastActivityAt: new Date(),
     }
+    if (coinsGained > 0) updateData.coins = { increment: coinsGained }
     if (topicId) updateData.currentTopic = topicId
 
     // ── Check if all 3 difficulty levels for this topic are now watched ──
+    // Watching all 3 no longer completes the topic by itself — it just makes
+    // the module's final exam available. Passing that exam (>=80%, see
+    // topicExamController.submitExam) is what actually adds the topic to
+    // completedTopics, awards the module bonus, and can complete the course.
     let topicCompleted = false
     let watchedLevels: string[] = []
 
@@ -305,14 +321,6 @@ export const watchVideo = async (req: AuthRequest, res: Response) => {
 
       const required  = ['fácil', 'medio', 'avanzado']
       topicCompleted  = required.every(n => watchedLevels.includes(n))
-
-      if (topicCompleted) {
-        const completedArr: string[] = JSON.parse(progress.completedTopics || '[]')
-        if (!completedArr.includes(topicId)) {
-          completedArr.push(topicId)
-          updateData.completedTopics = JSON.stringify(completedArr)
-        }
-      }
     }
 
     progress = await prisma.studentProgress.update({
@@ -324,11 +332,12 @@ export const watchVideo = async (req: AuthRequest, res: Response) => {
       success: true,
       data: {
         xpGained,
+        coinsGained,
         isFirstWatch,
         topicCompleted,
         watchedLevels,
         watchCount: existingWatch ? existingWatch.watchCount + 1 : 1,
-        progress: { ...progress, completedTopics: JSON.parse(progress.completedTopics) },
+        progress: serializeProgress(progress),
       },
     })
   } catch (error) {
@@ -407,9 +416,18 @@ export const dailyLogin = async (req: AuthRequest, res: Response) => {
       newStreak = 1
     }
 
+    // Bonus de monedas cada 5 días de racha (5, 10, 15...) — además del
+    // streak en sí, que ya influye en varios logros.
+    const STREAK_MILESTONE_COINS = 25
+    const coinsGained = newStreak > 0 && newStreak % 5 === 0 ? STREAK_MILESTONE_COINS : 0
+
     const updated = await prisma.studentProgress.update({
       where: { userId: studentId },
-      data:  { streak: newStreak, lastActivityAt: new Date() },
+      data:  {
+        streak: newStreak,
+        lastActivityAt: new Date(),
+        ...(coinsGained > 0 ? { coins: { increment: coinsGained } } : {}),
+      },
     })
 
     return res.status(200).json({
@@ -420,7 +438,8 @@ export const dailyLogin = async (req: AuthRequest, res: Response) => {
         previousStreak,
         daysDiff,
         wasReset:       daysDiff > 1,
-        progress:       { ...updated, completedTopics: JSON.parse(updated.completedTopics) },
+        coinsGained,
+        progress:       serializeProgress(updated),
       },
     })
   } catch (error) {
@@ -451,12 +470,10 @@ export const getAllStudents = async (req: AuthRequest, res: Response) => {
           where: { userId: student.id },
           select: { topicId: true, elo: true }
         })
+        const { password, ...studentSinPassword } = student
         return {
-          ...student,
-          progress: progress ? {
-            ...progress,
-            completedTopics: JSON.parse(progress.completedTopics)
-          } : null,
+          ...studentSinPassword,
+          progress: progress ? serializeProgress(progress) : null,
           topicSkills: topicSkills.map(s => ({ topicId: s.topicId, elo: Math.round(s.elo) }))
         }
       })
@@ -472,6 +489,141 @@ export const getAllStudents = async (req: AuthRequest, res: Response) => {
       success: false,
       error: 'Error en el servidor'
     })
+  }
+}
+
+// POST /api/students — el docente crea una cuenta de estudiante nueva
+// (mismo flujo de validación/hash que el auto-registro, pero sin loguear
+// al docente como ese estudiante: no se devuelve token).
+export const createStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, email, password } = req.body
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, error: 'Falta nombre, email o contraseña' })
+    }
+
+    const debilidad = passwordEsDebil(password)
+    if (debilidad) {
+      return res.status(400).json({ success: false, error: debilidad })
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'El email ya está registrado' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const student = await prisma.user.create({
+      data: { name, email: email.toLowerCase(), password: hashedPassword, role: 'student' }
+    })
+
+    const progress = await prisma.studentProgress.create({
+      data: {
+        userId: student.id,
+        completedTopics: '[]',
+        currentTopic: null,
+        totalXP: 0,
+        level: 1,
+        streak: 0,
+        videosWatched: 0,
+        chatbotSessions: 0,
+        learningMode: 'video'
+      }
+    })
+
+    const { password: _pw, ...studentSinPassword } = student
+    return res.status(201).json({
+      success: true,
+      data: { ...studentSinPassword, progress: serializeProgress(progress), topicSkills: [] }
+    })
+  } catch (error) {
+    console.error('Error al crear estudiante:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+  }
+}
+
+// PUT /api/students/:studentId — el docente edita nombre/email/contraseña
+// de la cuenta de un estudiante (los datos de progreso tienen su propio
+// endpoint en PUT /:studentId/progress y no se tocan aquí).
+export const updateStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params
+    const { name, email, password } = req.body
+
+    const student = await prisma.user.findUnique({ where: { id: studentId } })
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({ success: false, error: 'Estudiante no encontrado' })
+    }
+
+    const updateData: { name?: string; email?: string; password?: string } = {}
+
+    if (name !== undefined) {
+      if (!name.trim()) return res.status(400).json({ success: false, error: 'El nombre no puede estar vacío' })
+      updateData.name = name.trim()
+    }
+
+    if (email !== undefined) {
+      const normalized = email.toLowerCase().trim()
+      if (!normalized) return res.status(400).json({ success: false, error: 'El email no puede estar vacío' })
+      if (normalized !== student.email) {
+        const existing = await prisma.user.findUnique({ where: { email: normalized } })
+        if (existing) return res.status(400).json({ success: false, error: 'El email ya está registrado' })
+      }
+      updateData.email = normalized
+    }
+
+    if (password) {
+      const debilidad = passwordEsDebil(password)
+      if (debilidad) return res.status(400).json({ success: false, error: debilidad })
+      updateData.password = await bcrypt.hash(password, 10)
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, error: 'No hay datos para actualizar' })
+    }
+
+    const updated = await prisma.user.update({ where: { id: studentId }, data: updateData })
+    const progress = await prisma.studentProgress.findUnique({ where: { userId: studentId } })
+    const topicSkills = await prisma.studentTopicSkill.findMany({
+      where: { userId: studentId },
+      select: { topicId: true, elo: true }
+    })
+
+    const { password: _pw, ...updatedSinPassword } = updated
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...updatedSinPassword,
+        progress: progress ? serializeProgress(progress) : null,
+        topicSkills: topicSkills.map(s => ({ topicId: s.topicId, elo: Math.round(s.elo) }))
+      }
+    })
+  } catch (error) {
+    console.error('Error al actualizar estudiante:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+  }
+}
+
+// DELETE /api/students/:studentId — borra la cuenta y, en cascada (definida
+// en el schema de Prisma), todo su progreso, historial de video, intentos
+// de preguntas, chat y habilidades por tema.
+export const deleteStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params
+
+    const student = await prisma.user.findUnique({ where: { id: studentId } })
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({ success: false, error: 'Estudiante no encontrado' })
+    }
+
+    await prisma.user.delete({ where: { id: studentId } })
+
+    return res.status(200).json({ success: true })
+  } catch (error) {
+    console.error('Error al eliminar estudiante:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
   }
 }
 
@@ -543,10 +695,7 @@ export const getStudentStats = async (req: AuthRequest, res: Response) => {
           email: student.email,
           role: student.role
         },
-        progress: progress ? {
-          ...progress,
-          completedTopics
-        } : null,
+        progress: progress ? serializeProgress(progress) : null,
         stats: {
           totalTopics: topics.length,
           completedTopics: completedTopics.length,
@@ -565,5 +714,187 @@ export const getStudentStats = async (req: AuthRequest, res: Response) => {
       success: false,
       error: 'Error en el servidor'
     })
+  }
+}
+
+// ── Byte Store ─────────────────────────────────────────────────────────────
+
+// POST /api/students/:studentId/byte/purchase
+// body: { category: 'color' | 'outfit' | 'style', itemId: string }
+export const purchaseByteItem = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params
+    const { category, itemId } = req.body as { category: StoreCategory; itemId: string }
+
+    if (req.user?.id !== studentId && req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Acceso denegado' })
+    }
+
+    const catalog = catalogFor(category)
+    const item = catalog.find(i => i.id === itemId)
+    if (!item) {
+      return res.status(404).json({ success: false, error: 'Artículo no encontrado' })
+    }
+
+    const progress = await prisma.studentProgress.findUnique({ where: { userId: studentId } })
+    if (!progress) {
+      return res.status(404).json({ success: false, error: 'Progreso no encontrado' })
+    }
+
+    const ownedField   = category === 'color' ? 'ownedColors' : category === 'outfit' ? 'ownedOutfits' : 'ownedStyles'
+    const equipField   = category === 'color' ? 'byteColor'   : category === 'outfit' ? 'byteOutfit'   : 'byteStyle'
+    const owned: string[] = JSON.parse((progress as any)[ownedField] || '[]')
+
+    const updateData: Record<string, any> = { [equipField]: itemId }
+
+    if (!owned.includes(itemId)) {
+      if (progress.coins < item.price) {
+        return res.status(400).json({ success: false, error: 'Monedas insuficientes' })
+      }
+      updateData.coins = progress.coins - item.price
+      updateData[ownedField] = JSON.stringify([...owned, itemId])
+    }
+
+    const updated = await prisma.studentProgress.update({
+      where: { userId: studentId },
+      data: updateData,
+    })
+
+    return res.status(200).json({ success: true, data: serializeProgress(updated) })
+  } catch (error) {
+    console.error('Error al comprar artículo de la tienda:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+  }
+}
+
+// PUT /api/students/:studentId/byte
+// body: { byteName: string }
+export const updateByteProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params
+    const { byteName } = req.body as { byteName?: string }
+
+    if (req.user?.id !== studentId && req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Acceso denegado' })
+    }
+
+    if (typeof byteName !== 'string' || !byteName.trim()) {
+      return res.status(400).json({ success: false, error: 'Nombre inválido' })
+    }
+
+    const updated = await prisma.studentProgress.update({
+      where: { userId: studentId },
+      data: { byteName: byteName.trim().slice(0, 18) },
+    })
+
+    return res.status(200).json({ success: true, data: serializeProgress(updated) })
+  } catch (error) {
+    console.error('Error al actualizar el perfil de Byte:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+  }
+}
+
+// ── Achievements ─────────────────────────────────────────────────────────────
+
+async function computeAchievementStats(studentId: string) {
+  const progress = await prisma.studentProgress.findUnique({ where: { userId: studentId } })
+  if (!progress) return null
+
+  const watches = await prisma.videoWatch.findMany({
+    where: { userId: studentId },
+    select: { topicId: true, nivel: true },
+  })
+  const byTopic: Record<string, Set<string>> = {}
+  watches.forEach(w => {
+    if (!w.topicId) return
+    if (!byTopic[w.topicId]) byTopic[w.topicId] = new Set()
+    byTopic[w.topicId].add(w.nivel.toLowerCase())
+  })
+  const fullyWatchedTopics = Object.values(byTopic).filter(
+    s => s.has('fácil') && s.has('medio') && s.has('avanzado')
+  ).length
+
+  const stats = computeStats({
+    totalXP: progress.totalXP,
+    level: progress.level,
+    streak: progress.streak,
+    videosWatched: progress.videosWatched,
+    chatbotSessions: progress.chatbotSessions,
+    completedCount: JSON.parse(progress.completedTopics || '[]').length,
+    fullyWatchedTopics,
+  })
+
+  return { progress, stats }
+}
+
+// GET /api/students/:studentId/achievements-status
+export const getAchievementsStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params
+    if (req.user?.id !== studentId && req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Acceso denegado' })
+    }
+
+    const result = await computeAchievementStats(studentId)
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Progreso no encontrado' })
+    }
+    const claimed: string[] = JSON.parse(result.progress.claimedAchievements || '[]')
+
+    const achievements = ACHIEVEMENT_RULES.map(rule => ({
+      id: rule.id,
+      unlocked: rule.check(result.stats),
+      claimed: claimed.includes(rule.id),
+      coinReward: rule.coinReward,
+    }))
+
+    return res.status(200).json({ success: true, data: { achievements, stats: result.stats } })
+  } catch (error) {
+    console.error('Error al obtener estado de logros:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+  }
+}
+
+// POST /api/students/:studentId/achievements/:achievementId/claim
+export const claimAchievement = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId, achievementId } = req.params
+    if (req.user?.id !== studentId && req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Acceso denegado' })
+    }
+
+    const rule = ACHIEVEMENT_RULES.find(r => r.id === achievementId)
+    if (!rule) {
+      return res.status(404).json({ success: false, error: 'Logro no encontrado' })
+    }
+
+    const result = await computeAchievementStats(studentId)
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Progreso no encontrado' })
+    }
+
+    const claimed: string[] = JSON.parse(result.progress.claimedAchievements || '[]')
+    if (claimed.includes(achievementId)) {
+      return res.status(400).json({ success: false, error: 'Este logro ya fue reclamado' })
+    }
+    if (!rule.check(result.stats)) {
+      return res.status(400).json({ success: false, error: 'Este logro aún no está desbloqueado' })
+    }
+
+    const updated = await prisma.studentProgress.update({
+      where: { userId: studentId },
+      data: {
+        coins: result.progress.coins + rule.coinReward,
+        claimedAchievements: JSON.stringify([...claimed, achievementId]),
+      },
+    })
+
+    return res.status(200).json({
+      success: true,
+      data: { coinsAwarded: rule.coinReward, progress: serializeProgress(updated) },
+    })
+  } catch (error) {
+    console.error('Error al reclamar logro:', error)
+    return res.status(500).json({ success: false, error: 'Error en el servidor' })
   }
 }

@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CodePath AI | Micro-Learning Inteligente',
+  title: 'GEMA | Micro-Learning Inteligente',
   description: 'Plataforma de micro-learning basada en IA generativa para Fundamentos de Programación. Videos personalizados, evaluación adaptativa y gamificación.',
   generator: 'v0.app',
   icons: {
@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="bg-background">
+    <html lang="es" className="bg-background" data-scroll-behavior="smooth">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}

@@ -1,0 +1,68 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: tesis-backend
+    restart: unless-stopped
+    expose:
+      - "8000"
+    env_file:
+      - ./backend/.env.prod
+    volumes:
+      - ./backend/prisma/dev.db:/app/prisma/dev.db
+      # videoController reads each video's script JSON (../video_service/output
+      # relative to /app) to import/regenerate questions — this mount was
+      # missing in prod, so that feature silently had no JSON to read from.
+      - ./video_service/output:/video_service/output:ro
+    depends_on:
+      - video-service
+    networks:
+      - tesis-network
+
+  video-service:
+    build:
+      context: ./video_service
+    container_name: tesis-video-service
+    restart: unless-stopped
+    expose:
+      - "8001"
+    env_file:
+      - ./video_service/.env.prod
+    volumes:
+      - ./video_service/output:/app/output
+    networks:
+      - tesis-network
+
+  frontend:
+    build:
+      context: ./fronted
+      args:
+        NEXT_PUBLIC_API_URL: https://gemaapp.site/api
+    container_name: tesis-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    networks:
+      - tesis-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: tesis-nginx
+    restart: unless-stopped
+    ports:
+      - "9074:80"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./video_service/output:/videos-data:ro
+    depends_on:
+      - frontend
+      - backend
+      - video-service
+    networks:
+      - tesis-network
+
+networks:
+  tesis-network:
+    driver: bridge

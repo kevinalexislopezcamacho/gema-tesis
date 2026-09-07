@@ -8,6 +8,8 @@ import topicRoutes from './routes/topics'
 import videoRoutes from './routes/videos'
 import chatRoutes from './routes/chat'
 import questionRoutes from './routes/questions'
+import executeRoutes from './routes/execute'
+import analyticsRoutes from './routes/analytics'
 
 dotenv.config()
 
@@ -15,9 +17,15 @@ const app: Express = express()
 
 // Middlewares
 app.use(json())
+// CORS_ORIGIN accepts a comma-separated list — lets both the domain and the
+// raw IP:port keep working at once during the transition to the domain,
+// instead of one silently breaking the other's API calls.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3002')
+  .split(',')
+  .map(o => o.trim())
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3002',
+    origin: allowedOrigins,
     credentials: true
   })
 )
@@ -29,6 +37,8 @@ app.use('/api/topics', topicRoutes)
 app.use('/api/videos', videoRoutes)
 app.use('/api/chat', chatRoutes)
 app.use('/api', questionRoutes)
+app.use('/api', executeRoutes)
+app.use('/api/analytics', analyticsRoutes)
 
 // Health check
 app.get('/health', (req, res) => {

@@ -3,6 +3,17 @@ import { Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { AuthRequest } from '../middleware/auth'
+import { serializeProgress } from './studentController'
+
+// Mínimo 8 caracteres, al menos una mayúscula y al menos un número — se
+// aplica tanto a cuentas nuevas (register) como al cambio de contraseña
+// (updateProfile), para que la regla sea consistente en toda la app.
+export function passwordEsDebil(password: string): string | null {
+  if (password.length < 8) return 'La contraseña debe tener mínimo 8 caracteres'
+  if (!/[A-Z]/.test(password)) return 'La contraseña debe incluir al menos una letra mayúscula'
+  if (!/[0-9]/.test(password)) return 'La contraseña debe incluir al menos un número'
+  return null
+}
 
 const generateToken = (userId: string, email: string, role: string): string => {
   return jwt.sign(
@@ -27,6 +38,11 @@ export const register = async (req: AuthRequest, res: Response) => {
         success: false,
         error: 'Por favor proporciona nombre, email y contraseña'
       })
+    }
+
+    const debilidad = passwordEsDebil(password)
+    if (debilidad) {
+      return res.status(400).json({ success: false, error: debilidad })
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -126,7 +142,7 @@ export const login = async (req: AuthRequest, res: Response) => {
         where: { userId: user.id }
       })
       if (raw) {
-        progress = { ...raw, completedTopics: JSON.parse(raw.completedTopics) }
+        progress = serializeProgress(raw)
       }
     }
 
@@ -227,8 +243,9 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       if (!valid) {
         return res.status(400).json({ success: false, error: 'La contraseña actual es incorrecta' })
       }
-      if (newPassword.length < 6) {
-        return res.status(400).json({ success: false, error: 'La nueva contraseña debe tener mínimo 6 caracteres' })
+      const debilidad = passwordEsDebil(newPassword)
+      if (debilidad) {
+        return res.status(400).json({ success: false, error: debilidad })
       }
       updateData.password = await bcrypt.hash(newPassword, 10)
     }
@@ -242,7 +259,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     let progress = null
     if (updated.role === 'student') {
       const raw = await prisma.studentProgress.findUnique({ where: { userId: updated.id } })
-      if (raw) progress = { ...raw, completedTopics: JSON.parse(raw.completedTopics) }
+      if (raw) progress = serializeProgress(raw)
     }
 
     return res.status(200).json({
@@ -281,7 +298,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
         where: { userId: user.id }
       })
       if (raw) {
-        progress = { ...raw, completedTopics: JSON.parse(raw.completedTopics) }
+        progress = serializeProgress(raw)
       }
     }
 

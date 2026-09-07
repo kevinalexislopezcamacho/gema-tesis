@@ -1,0 +1,65 @@
+[
+  {
+    "id": "student-01-welcome",
+    "route": "/dashboard/student",
+    "title": "¡Hola! Soy {{byteName}}",
+    "body": "Soy tu guía en GEMA. Te voy a mostrar los rincones más importantes de la plataforma, con tu voz incluida — dale a reproducir cuando quieras.",
+    "expression": "waving"
+  },
+  {
+    "id": "student-02-learning-path",
+    "route": "/dashboard/student",
+    "target": "[data-tour-id=\"learning-path-preview\"]",
+    "title": "Tu camino de aprendizaje",
+    "body": "Este es el camino de módulos. Cada nodo es un tema — complétalo en sus 3 niveles, Fácil, Medio y Avanzado, para desbloquear el siguiente.",
+    "expression": "studying",
+    "placement": "bottom"
+  },
+  {
+    "id": "student-03-progress",
+    "route": "/dashboard/student",
+    "target": "[data-tour-id=\"course-progress\"]",
+    "title": "Tu progreso y certificado",
+    "body": "Aquí ves cuántos módulos llevas completados. Cuando termines el curso completo, se desbloquea un certificado en PDF que puedes descargar aquí mismo.",
+    "expression": "celebrating"
+  },
+  {
+    "id": "student-04-nav-achievements",
+    "route": "/dashboard/student",
+    "target": "[data-tour-id=\"nav-achievements\"]",
+    "title": "Tus logros",
+    "body": "Aquí llevas el conteo de los logros que has desbloqueado. Vamos a verlos de cerca.",
+    "expression": "excited"
+  },
+  {
+    "id": "student-05-achievements-page",
+    "route": "/dashboard/student/achievements",
+    "target": "[data-tour-id=\"achievements-progress\"]",
+    "title": "Logros y recompensas",
+    "body": "Hay 40 logros para desbloquear, básicos y avanzados. Cada uno te da monedas para gastar en la tienda de {{byteName}}.",
+    "expression": "happy"
+  },
+  {
+    "id": "student-06-store",
+    "route": "/dashboard/student/store",
+    "target": "[data-tour-id=\"store-tabs\"]",
+    "title": "La tienda de {{byteName}}",
+    "body": "Con las monedas que ganas viendo videos y desbloqueando logros, puedes cambiarme de color, ponerme accesorios, o darme otra expresión.",
+    "expression": "excited"
+  },
+  {
+    "id": "student-07-chat",
+    "target": "[data-tour-id=\"chat-input\"]",
+    "title": "Chatea conmigo",
+    "body": "Si prefieres resolver dudas hablando en vez de ver un video, aquí me encuentras en cualquier página — solo dale clic a la burbuja.",
+    "expression": "thinking",
+    "openChat": true
+  },
+  {
+    "id": "student-08-closing",
+    "route": "/dashboard/student",
+    "title": "¡Estás listo para empezar!",
+    "body": "Ya conoces toda la plataforma. Cualquier duda, aquí estoy en el chat. ¡Mucho ánimo con el curso!",
+    "expression": "celebrating"
+  }
+]

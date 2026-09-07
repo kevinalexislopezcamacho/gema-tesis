@@ -8,14 +8,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import {
-  Terminal, LogOut, Zap, Trophy, Flame, Video, MessageSquare,
+  LogOut, Zap, Trophy, Flame, Video, MessageSquare,
   BookOpen, CheckCircle2, Lock, Save, KeyRound, UserCircle,
   Loader2, CheckCircle, AlertCircle, Palette, ChevronRight, HelpCircle,
-  Gauge, Menu
+  Gauge, Menu, ShoppingBag,
+  Target, Dumbbell, MessageCircle, Clapperboard, GraduationCap, Crown,
+  type LucideIcon,
 } from "lucide-react"
 import { ByteMascot } from "@/components/byte/ByteMascot"
-import { OnboardingTutorial } from "@/components/byte/OnboardingTutorial"
-import { eloLabel } from "@/lib/utils"
+import { useTour } from "@/contexts/tour-context"
+import { useChat } from "@/contexts/chat-context"
+import { getEloTier, getNextEloTier, ELO_TIERS } from "@/lib/utils"
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
@@ -39,24 +42,25 @@ const AVATAR_COLORS = [
   { id: "pink",   bg: "bg-pink-600",    ring: "ring-pink-400"    },
 ]
 
-const ACHIEVEMENTS = [
-  { id: "first_video", icon: "🎯", title: "Primer Paso",   desc: "Ve tu primer video",       check: (v: number) => v >= 1                                                    },
-  { id: "streak_3",    icon: "🔥", title: "En Racha",      desc: "3 días consecutivos",      check: (_v: number, s: number) => s >= 3                                        },
-  { id: "streak_7",    icon: "💪", title: "Constante",     desc: "7 días seguidos",          check: (_v: number, s: number) => s >= 7                                        },
-  { id: "xp_500",      icon: "⚡", title: "Acumulador",    desc: "Alcanza 500 XP",           check: (_v: number, _s: number, x: number) => x >= 500                         },
-  { id: "xp_1000",     icon: "🏆", title: "Élite",         desc: "Alcanza 1000 XP",          check: (_v: number, _s: number, x: number) => x >= 1000                        },
-  { id: "topics_2",    icon: "📚", title: "Explorador",    desc: "Completa 2 módulos",       check: (_v: number, _s: number, _x: number, t: number) => t >= 2               },
-  { id: "topics_4",    icon: "🎓", title: "Avanzado",      desc: "Completa 4 módulos",       check: (_v: number, _s: number, _x: number, t: number) => t >= 4               },
-  { id: "topics_8",    icon: "👑", title: "Graduado",      desc: "Completa el curso",        check: (_v: number, _s: number, _x: number, t: number) => t >= 8               },
-  { id: "chat_5",      icon: "💬", title: "Conversador",   desc: "5 sesiones de chatbot",    check: (_v: number, _s: number, _x: number, _t: number, c: number) => c >= 5   },
-  { id: "videos_10",   icon: "🎬", title: "Cinéfilo",      desc: "Ve 10 videos",             check: (v: number) => v >= 10                                                   },
+const ACHIEVEMENTS: { id: string; icon: LucideIcon; title: string; desc: string; check: (v: number, s?: number, x?: number, t?: number, c?: number) => boolean }[] = [
+  { id: "first_video", icon: Target,        title: "Primer Paso",   desc: "Ve tu primer video",       check: (v: number) => v >= 1                                                    },
+  { id: "streak_3",    icon: Flame,         title: "En Racha",      desc: "3 días consecutivos",      check: (_v: number, s: number = 0) => s >= 3                                    },
+  { id: "streak_7",    icon: Dumbbell,      title: "Constante",     desc: "7 días seguidos",          check: (_v: number, s: number = 0) => s >= 7                                    },
+  { id: "xp_500",      icon: Zap,           title: "Acumulador",    desc: "Alcanza 500 XP",           check: (_v: number, _s: number = 0, x: number = 0) => x >= 500                 },
+  { id: "xp_1000",     icon: Trophy,        title: "Élite",         desc: "Alcanza 1000 XP",          check: (_v: number, _s: number = 0, x: number = 0) => x >= 1000                },
+  { id: "topics_2",    icon: BookOpen,      title: "Explorador",    desc: "Completa 2 módulos",       check: (_v: number, _s: number = 0, _x: number = 0, t: number = 0) => t >= 2   },
+  { id: "topics_4",    icon: GraduationCap, title: "Avanzado",      desc: "Completa 4 módulos",       check: (_v: number, _s: number = 0, _x: number = 0, t: number = 0) => t >= 4   },
+  { id: "topics_8",    icon: Crown,         title: "Graduado",      desc: "Completa el curso",        check: (_v: number, _s: number = 0, _x: number = 0, t: number = 0) => t >= 8   },
+  { id: "chat_5",      icon: MessageCircle, title: "Conversador",   desc: "5 sesiones de chatbot",    check: (_v: number, _s: number = 0, _x: number = 0, _t: number = 0, c: number = 0) => c >= 5 },
+  { id: "videos_10",   icon: Clapperboard,  title: "Cinéfilo",      desc: "Ve 10 videos",             check: (v: number) => v >= 10                                                   },
 ]
 
 export default function StudentProfile() {
   const router = useRouter()
   const { user, token, isLoading, refreshProgress, logout } = useAuth()
+  const { startTour } = useTour()
+  const chat = useChat()
 
-  const [showTutorial,    setShowTutorial]    = useState(false)
   const [sidebarOpen,     setSidebarOpen]     = useState(false)
   const [avatarColor,     setAvatarColor]     = useState("violet")
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -89,11 +93,12 @@ export default function StudentProfile() {
       .catch(() => {})
   }, [user, token])
 
-  if (isLoading || !user || user.role !== "student") {
+  if (isLoading || !user || user.role !== "student" || !user.progress) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Spinner /></div>
   }
 
   const progress       = user.progress!
+  const byteName       = progress.byteName || "Byte"
   const completedCount = progress.completedTopics.length
   const xpInLevel      = progress.totalXP % 500
   const xpPct          = (xpInLevel / 500) * 100
@@ -150,10 +155,6 @@ export default function StudentProfile() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {showTutorial && (
-        <OnboardingTutorial userId={user.id} onClose={() => setShowTutorial(false)} />
-      )}
-
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -166,17 +167,15 @@ export default function StudentProfile() {
       <aside className={`
         fixed md:static z-50 md:z-auto inset-y-0 left-0
         w-60 flex-shrink-0 flex flex-col
-        bg-[oklch(0.10_0.025_240)] border-r border-border/50
+        bg-muted/50 border-r border-border
         transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
         {/* Logo */}
-        <div className="h-14 flex items-center gap-2.5 px-5 border-b border-border/40 flex-shrink-0">
+        <div className="h-14 flex items-center gap-2.5 px-5 border-b border-border flex-shrink-0">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-              <Terminal className="w-4 h-4 text-primary" />
-            </div>
-            <span className="font-bold tracking-tight text-sm">CodePath<span className="text-primary">AI</span></span>
+            <img src="/logo-icon.png" alt="GEMA" className="w-8 h-8 object-contain" />
+            <span className="font-bold tracking-tight text-sm">GEMA</span>
           </Link>
         </div>
 
@@ -191,10 +190,14 @@ export default function StudentProfile() {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
             <Trophy className="w-4 h-4 flex-shrink-0" />Logros
           </Link>
-          <Link href="/dashboard/student/chat" onClick={() => setSidebarOpen(false)}
+          <Link href="/dashboard/student/store" onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
-            <MessageSquare className="w-4 h-4 flex-shrink-0" />Chat con Byte
+            <ShoppingBag className="w-4 h-4 flex-shrink-0" />Tienda
           </Link>
+          <button onClick={() => { setSidebarOpen(false); chat.openChat() }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all text-left">
+            <MessageSquare className="w-4 h-4 flex-shrink-0" />Chat con {byteName}
+          </button>
           <Link href="/dashboard/student/profile"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary/15 text-primary border border-primary/20">
             <UserCircle className="w-4 h-4 flex-shrink-0" />Mi Perfil
@@ -202,7 +205,7 @@ export default function StudentProfile() {
         </nav>
 
         {/* User footer */}
-        <div className="p-4 border-t border-border/40 space-y-3 flex-shrink-0">
+        <div className="p-4 border-t border-border space-y-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className={`w-8 h-8 rounded-lg ${colorObj.bg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
               {initials}
@@ -234,7 +237,7 @@ export default function StudentProfile() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-border/40 bg-background/60 backdrop-blur-sm flex-shrink-0">
+        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/60 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors">
               <Menu className="w-5 h-5" />
@@ -245,7 +248,7 @@ export default function StudentProfile() {
             </div>
           </div>
           <button
-            onClick={() => setShowTutorial(true)}
+            onClick={startTour}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
           >
             <HelpCircle className="w-3.5 h-3.5" />
@@ -254,93 +257,138 @@ export default function StudentProfile() {
         </header>
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-5">
+        <main className="flex-1 overflow-y-auto">
 
-          {/* ── Hero ─────────────────────────────────────────────────────── */}
-          <div className="rounded-2xl border border-border/40 bg-[oklch(0.10_0.025_240)] p-5 md:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            {/* Avatar with color picker */}
-            <div className="relative flex-shrink-0">
-              <div className={`w-20 h-20 rounded-2xl ${colorObj.bg} flex items-center justify-center text-white text-2xl font-bold shadow-lg`}>
-                {initials}
-              </div>
-              <button
-                onClick={() => setShowColorPicker(v => !v)}
-                className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors shadow-sm"
-              >
-                <Palette className="w-3 h-3 text-muted-foreground" />
-              </button>
-              {showColorPicker && (
-                <div className="absolute top-full left-0 mt-3 z-10 bg-card border border-border rounded-xl p-3 shadow-xl flex gap-2">
-                  {AVATAR_COLORS.map(c => (
-                    <button key={c.id} onClick={() => { setAvatarColor(c.id); setShowColorPicker(false) }}
-                      className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-1 ring-offset-card` : ""} hover:scale-110 transition-all`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* ── Banner (full-bleed) ──────────────────────────────────────── */}
+          <div className="h-24 md:h-28 w-full bg-gradient-to-r from-primary via-accent to-primary/70" />
 
-            {/* Info */}
-            <div className="text-center sm:text-left flex-1 min-w-0">
-              <h2 className="text-xl font-bold mb-0.5">{user.name}</h2>
-              <p className="text-muted-foreground text-sm mb-3">{user.email}</p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/15 text-primary text-xs font-semibold">
-                  <Zap className="w-3 h-3" />Nivel {progress.level}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-yellow-500/10 text-yellow-400 text-xs font-semibold font-mono">
-                  {progress.totalXP.toLocaleString()} XP
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-semibold">
-                  <Flame className="w-3 h-3" />{progress.streak} días
-                </span>
+          <div className="max-w-4xl mx-auto px-4 md:px-8 pb-16">
+
+            {/* Avatar + mascot row, overlapping the banner */}
+            <div className="flex items-end justify-between -mt-10 mb-5">
+              <div className="relative flex-shrink-0">
+                <div className={`w-20 h-20 rounded-2xl ${colorObj.bg} flex items-center justify-center text-white text-2xl font-bold shadow-lg border-4 border-background`}>
+                  {initials}
+                </div>
+                <button
+                  onClick={() => setShowColorPicker(v => !v)}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors shadow-sm"
+                >
+                  <Palette className="w-3 h-3 text-muted-foreground" />
+                </button>
+                {showColorPicker && (
+                  <div className="absolute top-full left-0 mt-3 z-10 bg-card border border-border rounded-xl p-3 shadow-xl flex gap-2">
+                    {AVATAR_COLORS.map(c => (
+                      <button key={c.id} onClick={() => { setAvatarColor(c.id); setShowColorPicker(false) }}
+                        className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-1 ring-offset-card` : ""} hover:scale-110 transition-all`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="max-w-xs mx-auto sm:mx-0">
-                <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                  <span>Nv. {progress.level}</span>
-                  <span>{xpInLevel}/500 → Nv. {progress.level + 1}</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${xpPct}%` }} />
-                </div>
+
+              <div className="hidden lg:block flex-shrink-0 -mb-1">
+                <ByteMascot expression="happy" size={64} />
               </div>
             </div>
 
-            {/* Mascot */}
-            <div className="hidden lg:block flex-shrink-0">
-              <ByteMascot expression="happy" size={90} />
+            {/* Name + email */}
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold mb-0.5">{user.name}</h2>
+              <p className="text-muted-foreground text-sm">{user.email}</p>
             </div>
-          </div>
 
-          {/* ── Stats tiles ──────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: Zap,           value: progress.totalXP.toLocaleString(), label: "XP TOTAL",     bg: "bg-primary/10",    border: "border-l-primary",    text: "text-primary"    },
-              { icon: Video,         value: progress.videosWatched,            label: "VIDEOS",        bg: "bg-blue-500/10",   border: "border-l-blue-500",   text: "text-blue-400"   },
-              { icon: Flame,         value: progress.streak,                   label: "RACHA (DÍAS)",  bg: "bg-orange-500/10", border: "border-l-orange-500", text: "text-orange-400" },
-              { icon: MessageSquare, value: progress.chatbotSessions,          label: "SESIONES CHAT", bg: "bg-purple-500/10", border: "border-l-purple-500", text: "text-purple-400" },
-            ].map((s, i) => (
-              <div key={i} className={`${s.bg} border border-border/40 border-l-2 ${s.border} rounded-2xl p-4 flex items-center gap-3`}>
-                <s.icon className={`w-4 h-4 ${s.text} flex-shrink-0`} />
-                <div>
-                  <p className={`text-xl font-bold font-mono leading-tight ${s.text}`}>{s.value}</p>
-                  <p className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase mt-0.5">{s.label}</p>
-                </div>
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Zap className="w-3.5 h-3.5" />Nivel {progress.level}
+              </span>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-sm font-medium font-mono">
+                <Zap className="w-3.5 h-3.5" />{progress.totalXP.toLocaleString()} XP
+              </span>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-sm font-medium">
+                <Flame className="w-3.5 h-3.5" />{progress.streak} días
+              </span>
+            </div>
+
+            {/* Level progress */}
+            <div className="mb-10">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Nv. {progress.level}</span>
+                <span>{xpInLevel}/500 → Nv. {progress.level + 1}</span>
               </div>
-            ))}
-          </div>
+              <div className="h-2 rounded-full bg-secondary/60 overflow-hidden">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${xpPct}%` }} />
+              </div>
+            </div>
 
-          {/* ── 2-col: Logros + Progreso del curso ───────────────────────── */}
-          <div className="grid md:grid-cols-2 gap-4">
+            {/* ── Stats row — open, no boxes ──────────────────────────────── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border border-t border-b border-border py-6 mb-12">
+              {[
+                { icon: Zap,           value: progress.totalXP.toLocaleString(), label: "XP TOTAL",     text: "text-primary"    },
+                { icon: Video,         value: progress.videosWatched,            label: "VIDEOS",        text: "text-blue-500"   },
+                { icon: Flame,         value: progress.streak,                   label: "RACHA (DÍAS)",  text: "text-orange-500" },
+                { icon: MessageSquare, value: progress.chatbotSessions,          label: "SESIONES CHAT", text: "text-purple-500" },
+              ].map((s, i) => (
+                <div key={i} className="flex flex-col items-center gap-1 px-2">
+                  <s.icon className={`w-5 h-5 ${s.text}`} />
+                  <span className="text-2xl font-bold font-mono text-foreground">{s.value}</span>
+                  <span className="text-[10px] tracking-widest text-muted-foreground text-center">{s.label}</span>
+                </div>
+              ))}
+            </div>
 
-            {/* Logros */}
-            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" />Logros
-                </h3>
-                <Link href="/dashboard/student/achievements" className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
-                  Ver todos <ChevronRight className="w-3 h-3" />
+            {/* ── Curso ────────────────────────────────────────────────────── */}
+            <section className="mb-12">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-[18px] h-[18px] text-primary" />
+                  <h2 className="text-foreground">Curso</h2>
+                </div>
+                <span className="text-sm text-muted-foreground">{completedCount}/8</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-secondary/60 mb-6 overflow-hidden">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${(completedCount / 8) * 100}%` }} />
+              </div>
+              <div className="space-y-1">
+                {TOPICS.map((t, i) => {
+                  const done    = progress.completedTopics.includes(t.id)
+                  const current = progress.currentTopic === t.id
+                  const locked  = !done && i > 0 && !progress.completedTopics.includes(TOPICS[i - 1].id)
+                  return (
+                    <div
+                      key={t.id}
+                      className={`flex items-center justify-between py-2.5 ${i < TOPICS.length - 1 ? "border-b border-border/60" : ""} ${
+                        current ? "text-primary" : locked ? "text-muted-foreground/50" : "text-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {locked
+                          ? <Lock className="w-3.5 h-3.5 text-muted-foreground/50" />
+                          : current
+                            ? <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">{i + 1}</span>
+                            : <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                        }
+                        <span className="text-sm">{t.name}</span>
+                      </div>
+                      {current && !done && <span className="text-[10px] text-primary tracking-widest font-semibold">ACTIVO</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+
+            <div className="h-px bg-border mb-12" />
+
+            {/* ── Logros ───────────────────────────────────────────────────── */}
+            <section className="mb-12">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-[18px] h-[18px] text-yellow-500" />
+                  <h2 className="text-foreground">Logros</h2>
+                </div>
+                <Link href="/dashboard/student/achievements" className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
+                  Ver todos <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
               {(() => {
@@ -355,165 +403,170 @@ export default function StudentProfile() {
                 const shown = [...unlocked.slice(0, 4), ...locked.slice(0, Math.max(0, 6 - Math.min(unlocked.length, 4)))]
                 return (
                   <>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
                       {shown.slice(0, 6).map(a => {
                         const isUnlocked = unlocked.some(u => u.id === a.id)
                         return (
                           <div key={a.id} className={`p-2.5 rounded-xl border text-center transition-all ${
                             isUnlocked ? "bg-primary/10 border-primary/30" : "bg-secondary/30 border-border/30 opacity-40 grayscale"
                           }`}>
-                            <div className="text-lg mb-0.5">{a.icon}</div>
+                            <div className="mb-0.5 flex justify-center"><a.icon className={`w-5 h-5 ${isUnlocked ? "text-primary" : "text-muted-foreground"}`} /></div>
                             <p className="text-xs font-semibold leading-tight truncate">{a.title}</p>
                             {isUnlocked && <CheckCircle2 className="w-3 h-3 text-primary mx-auto mt-1" />}
                           </div>
                         )
                       })}
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-center font-mono">
+                    <p className="text-[10px] text-muted-foreground font-mono">
                       {unlocked.length} / 40 logros desbloqueados
                     </p>
                   </>
                 )
               })()}
-            </div>
+            </section>
 
-            {/* Progreso del curso */}
-            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-primary" />Curso
-                </h3>
-                <span className="text-xs font-mono text-primary">{completedCount}/8</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden mb-3">
-                <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" style={{ width: `${(completedCount / 8) * 100}%` }} />
-              </div>
-              <div className="space-y-1.5">
-                {TOPICS.map((t, i) => {
-                  const done    = progress.completedTopics.includes(t.id)
-                  const current = progress.currentTopic === t.id
-                  const locked  = !done && i > 0 && !progress.completedTopics.includes(TOPICS[i - 1].id)
-                  return (
-                    <div key={t.id} className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg ${
-                      done ? "bg-primary/10" : current ? "bg-accent/10" : "bg-secondary/20"
+            <div className="h-px bg-border mb-12" />
+
+            {/* ── Nivel de habilidad ───────────────────────────────────────── */}
+            {skills.length > 0 && (
+              <>
+                <section className="mb-12">
+                  <div className="flex items-start justify-between gap-4 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Gauge className="w-[18px] h-[18px] text-primary" />
+                      <h2 className="text-foreground">Nivel de habilidad</h2>
+                    </div>
+                    <div className="flex items-center gap-1 flex-wrap justify-end max-w-[180px]">
+                      {ELO_TIERS.map(t => (
+                        <span key={t.label} title={`${t.label}: ${t.min === 0 ? "hasta" : t.min}–${t.max === 9999 ? "+" : t.max}`}
+                          className={`${t.textColor} cursor-default select-none`}>
+                          <t.icon className="w-3 h-3" />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-7">Se calibra con tus respuestas en cada video</p>
+
+                  <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border gap-y-6">
+                    {skills.map((s, i) => {
+                      const topic     = TOPICS.find(t => t.id === s.topicId)
+                      const tier      = getEloTier(s.elo)
+                      const nextTier  = getNextEloTier(s.elo)
+                      const rangeSize = tier.max === 9999 ? 400 : (tier.max - tier.min + 1)
+                      const pct       = tier.max === 9999 ? 100 : Math.min(100, ((s.elo - tier.min) / rangeSize) * 100)
+                      const ptsLeft   = nextTier ? Math.ceil(nextTier.min - s.elo) : 0
+
+                      return (
+                        <div key={s.topicId} className={`${i % 2 === 0 ? "sm:pr-10" : "sm:pl-10"} ${i > 0 ? "pt-6 sm:pt-0" : ""}`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-foreground font-medium">{topic?.name ?? s.topicId}</span>
+                            <span className={`text-xs ${tier.textColor} flex items-center gap-1 font-semibold`}>
+                              <tier.icon className="w-3.5 h-3.5" />
+                              {tier.label}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-secondary/60 overflow-hidden mb-1">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{ width: `${pct}%`, background: `linear-gradient(to right, ${tier.barFrom}, ${tier.barTo})` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span className={`${tier.textColor} font-medium font-mono`}>{Math.round(s.elo)} Elo</span>
+                            {nextTier
+                              ? <span className="inline-flex items-center gap-1">{ptsLeft} pts → <nextTier.icon className="w-3 h-3" /> {nextTier.label}</span>
+                              : <span className={`${tier.textColor} font-semibold`}>Rango máximo</span>
+                            }
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+
+                <div className="h-px bg-border mb-12" />
+              </>
+            )}
+
+            {/* ── Información personal + Cambiar contraseña ─────────────────── */}
+            <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border gap-y-10">
+
+              {/* Información personal */}
+              <div className="md:pr-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <UserCircle className="w-[18px] h-[18px] text-primary" />
+                  <h2 className="text-foreground">Información personal</h2>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Nombre</label>
+                    <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/40 border-border h-9 text-sm" placeholder="Tu nombre" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Email</label>
+                    <Input value={user.email} disabled className="bg-secondary/20 border-border opacity-60 h-9 text-sm" />
+                    <p className="text-[10px] text-muted-foreground">El email no se puede modificar</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Color del avatar</label>
+                    <div className="flex gap-2">
+                      {AVATAR_COLORS.map(c => (
+                        <button key={c.id} onClick={() => setAvatarColor(c.id)}
+                          className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-2 ring-offset-background` : ""} hover:scale-110 transition-all`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {infoMsg && (
+                    <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                      infoMsg.ok
+                        ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                        : "bg-destructive/10 border border-destructive/20 text-destructive"
                     }`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
-                        done ? "bg-primary/30 text-primary" : current ? "bg-accent/30 text-accent" : "bg-secondary text-muted-foreground"
-                      }`}>
-                        {done ? <CheckCircle2 className="w-3 h-3" /> : locked ? <Lock className="w-3 h-3" /> : i + 1}
-                      </div>
-                      <span className={`text-xs flex-1 ${done ? "font-medium" : "text-muted-foreground"}`}>{t.name}</span>
-                      {done && <span className="text-[10px] text-primary font-mono">✓</span>}
-                      {current && !done && <span className="text-[10px] text-accent font-semibold tracking-widest uppercase">Activo</span>}
+                      {infoMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                      {infoMsg.text}
                     </div>
-                  )
-                })}
+                  )}
+                  <Button onClick={handleSaveInfo} disabled={savingInfo} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
+                    {savingInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar cambios
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* ── Habilidad por tema (Elo) ─────────────────────────────────── */}
-          {skills.length > 0 && (
-            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 mb-1">
-                <Gauge className="w-4 h-4 text-primary" />Habilidad por tema
-              </h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Se ajusta automáticamente con tus respuestas en los videos.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-2">
-                {skills.map(s => {
-                  const topic = TOPICS.find(t => t.id === s.topicId)
-                  const { label, className } = eloLabel(s.elo)
-                  return (
-                    <div key={s.topicId} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-secondary/30">
-                      <span className="text-sm">{topic?.name ?? s.topicId}</span>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-md bg-secondary/60 border border-border/40 ${className}`}>
-                        {label}
-                      </span>
+              {/* Cambiar contraseña */}
+              <div className="md:pl-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <KeyRound className="w-[18px] h-[18px] text-primary" />
+                  <h2 className="text-foreground">Cambiar contraseña</h2>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { label: "Contraseña actual", val: curPw,     set: setCurPw,     ph: "••••••••"            },
+                    { label: "Nueva contraseña",  val: newPw,     set: setNewPw,     ph: "Mínimo 6 caracteres" },
+                    { label: "Confirmar nueva",   val: confirmPw, set: setConfirmPw, ph: "Repite la nueva"     },
+                  ].map(f => (
+                    <div key={f.label} className="space-y-1.5">
+                      <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">{f.label}</label>
+                      <Input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className="bg-secondary/40 border-border h-9 text-sm" />
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── 2-col: Editar info + Cambiar contraseña ──────────────────── */}
-          <div className="grid md:grid-cols-2 gap-4 pb-6">
-
-            {/* Información personal */}
-            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <UserCircle className="w-4 h-4 text-primary" />Información personal
-              </h3>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Nombre</label>
-                  <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-border h-9 text-sm" placeholder="Tu nombre" />
+                  ))}
+                  {pwMsg && (
+                    <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                      pwMsg.ok
+                        ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                        : "bg-destructive/10 border border-destructive/20 text-destructive"
+                    }`}>
+                      {pwMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                      {pwMsg.text}
+                    </div>
+                  )}
+                  <Button onClick={handleChangePw} disabled={savingPw} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
+                    {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}Cambiar contraseña
+                  </Button>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Email</label>
-                  <Input value={user.email} disabled className="bg-secondary/30 border-border opacity-60 h-9 text-sm" />
-                  <p className="text-[10px] text-muted-foreground">El email no se puede modificar</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Color del avatar</label>
-                  <div className="flex gap-2">
-                    {AVATAR_COLORS.map(c => (
-                      <button key={c.id} onClick={() => setAvatarColor(c.id)}
-                        className={`w-6 h-6 rounded-full ${c.bg} ${avatarColor === c.id ? `ring-2 ${c.ring} ring-offset-2 ring-offset-card` : ""} hover:scale-110 transition-all`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                {infoMsg && (
-                  <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
-                    infoMsg.ok
-                      ? "bg-green-500/10 border border-green-500/20 text-green-400"
-                      : "bg-destructive/10 border border-destructive/20 text-destructive"
-                  }`}>
-                    {infoMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                    {infoMsg.text}
-                  </div>
-                )}
-                <Button onClick={handleSaveInfo} disabled={savingInfo} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
-                  {savingInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar cambios
-                </Button>
               </div>
-            </div>
 
-            {/* Cambiar contraseña */}
-            <div className="rounded-2xl border border-border/40 bg-card/40 p-4 md:p-5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <KeyRound className="w-4 h-4 text-primary" />Cambiar contraseña
-              </h3>
-              <div className="space-y-3">
-                {[
-                  { label: "Contraseña actual", val: curPw,     set: setCurPw,     ph: "••••••••"            },
-                  { label: "Nueva contraseña",  val: newPw,     set: setNewPw,     ph: "Mínimo 6 caracteres" },
-                  { label: "Confirmar nueva",   val: confirmPw, set: setConfirmPw, ph: "Repite la nueva"     },
-                ].map(f => (
-                  <div key={f.label} className="space-y-1.5">
-                    <label className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">{f.label}</label>
-                    <Input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className="bg-secondary/50 border-border h-9 text-sm" />
-                  </div>
-                ))}
-                {pwMsg && (
-                  <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
-                    pwMsg.ok
-                      ? "bg-green-500/10 border border-green-500/20 text-green-400"
-                      : "bg-destructive/10 border border-destructive/20 text-destructive"
-                  }`}>
-                    {pwMsg.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                    {pwMsg.text}
-                  </div>
-                )}
-                <Button onClick={handleChangePw} disabled={savingPw} className="w-full bg-primary hover:bg-primary/90 gap-2 h-9 text-sm">
-                  {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}Cambiar contraseña
-                </Button>
-              </div>
             </div>
-
           </div>
         </main>
       </div>

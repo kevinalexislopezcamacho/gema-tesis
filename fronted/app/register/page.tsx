@@ -10,8 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
-import { 
-  Terminal, 
+import {
   ArrowLeft,
   Eye,
   EyeOff,
@@ -43,12 +42,25 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    
-    if (password !== confirmPassword) {
-      setError("Las contrasenas no coinciden")
+
+    if (password.length < 8) {
+      setError("La contraseña debe tener minimo 8 caracteres")
       return
     }
-    
+    if (!/[A-Z]/.test(password)) {
+      setError("La contraseña debe incluir al menos una letra mayuscula")
+      return
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("La contraseña debe incluir al menos un numero")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden")
+      return
+    }
+
     if (!acceptTerms) {
       setError("Debes aceptar los terminos y condiciones")
       return
@@ -138,15 +150,9 @@ export default function RegisterPage() {
               {/* Logo mobile */}
               <div className="text-center mb-6 md:hidden">
                 <Link href="/" className="inline-flex items-center gap-3 group">
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                      <Terminal className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
-                  </div>
+                  <img src="/logo-icon.png" alt="GEMA" className="w-12 h-12 object-contain" />
                   <div className="text-left">
-                    <span className="text-xl font-bold text-foreground">CodePath</span>
-                    <span className="text-xl font-bold text-primary">AI</span>
+                    <span className="text-xl font-bold text-foreground">GEMA</span>
                   </div>
                 </Link>
               </div>
@@ -193,14 +199,15 @@ export default function RegisterPage() {
                         />
                       </Field>
                       <Field>
-                        <FieldLabel>Contrasena</FieldLabel>
+                        <FieldLabel>Contraseña</FieldLabel>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="Minimo 6 caracteres"
+                            placeholder="Minimo 8 caracteres, con mayuscula y numero"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            minLength={8}
                             className="bg-secondary/50 border-border/50 pr-10"
                           />
                           <button
@@ -211,12 +218,26 @@ export default function RegisterPage() {
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
+                        {password && (
+                          <div className="flex flex-col gap-1 mt-1.5">
+                            {[
+                              { ok: password.length >= 8, text: "Al menos 8 caracteres" },
+                              { ok: /[A-Z]/.test(password), text: "Al menos una mayuscula" },
+                              { ok: /[0-9]/.test(password), text: "Al menos un numero" },
+                            ].map(({ ok, text }) => (
+                              <div key={text} className={`flex items-center gap-1 text-xs ${ok ? "text-primary" : "text-muted-foreground"}`}>
+                                <CheckCircle2 className="w-3 h-3" />
+                                {text}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </Field>
                       <Field>
-                        <FieldLabel>Confirmar contrasena</FieldLabel>
+                        <FieldLabel>Confirmar contraseña</FieldLabel>
                         <Input
                           type="password"
-                          placeholder="Repite tu contrasena"
+                          placeholder="Repite tu contraseña"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           required
@@ -225,7 +246,7 @@ export default function RegisterPage() {
                         {confirmPassword && password === confirmPassword && (
                           <div className="flex items-center gap-1 text-primary text-xs mt-1">
                             <CheckCircle2 className="w-3 h-3" />
-                            Las contrasenas coinciden
+                            Las contraseñas coinciden
                           </div>
                         )}
                       </Field>

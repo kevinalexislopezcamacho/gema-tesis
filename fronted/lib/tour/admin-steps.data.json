@@ -1,0 +1,55 @@
+[
+  {
+    "id": "admin-01-welcome",
+    "route": "/dashboard/admin",
+    "title": "¡Hola, docente! Soy Byte",
+    "body": "Te voy a mostrar cómo administrar tu curso: generar videos, ver a tus estudiantes, revisar analíticas y gestionar los módulos.",
+    "expression": "waving"
+  },
+  {
+    "id": "admin-02-videos",
+    "route": "/dashboard/admin",
+    "target": "[data-tour-id=\"btn-generate-video\"]",
+    "adminTab": "videos",
+    "title": "Genera videos con IA",
+    "body": "Con este botón generas un video educativo nuevo: eliges el módulo, el subtema y el nivel, y la IA arma el guion, el audio y las preguntas.",
+    "expression": "studying"
+  },
+  {
+    "id": "admin-03-students",
+    "route": "/dashboard/admin",
+    "target": "[data-tour-id=\"students-table\"]",
+    "adminTab": "students",
+    "title": "Tus estudiantes",
+    "body": "Aquí ves a todos tus estudiantes registrados, con su progreso, nivel y XP.",
+    "expression": "happy",
+    "placement": "bottom"
+  },
+  {
+    "id": "admin-04-analytics",
+    "route": "/dashboard/admin",
+    "target": "[data-tour-id=\"analytics-charts\"]",
+    "adminTab": "analytics",
+    "title": "Analíticas del curso",
+    "body": "Revisa qué tan avanzado va cada módulo entre todos tus estudiantes, y quiénes van a la cabeza.",
+    "expression": "thinking",
+    "placement": "bottom"
+  },
+  {
+    "id": "admin-05-modules",
+    "route": "/dashboard/admin",
+    "target": "[data-tour-id=\"modules-table\"]",
+    "adminTab": "modules",
+    "title": "Administra los módulos",
+    "body": "Desde aquí puedes crear, editar o eliminar los módulos del curso — el camino de aprendizaje del estudiante se actualiza automáticamente.",
+    "expression": "excited",
+    "placement": "bottom"
+  },
+  {
+    "id": "admin-06-closing",
+    "route": "/dashboard/admin",
+    "title": "¡Listo para enseñar!",
+    "body": "Ya conoces el panel del docente. Cualquier duda, aquí estoy.",
+    "expression": "celebrating"
+  }
+]
